@@ -6,6 +6,10 @@ Obrigado pelo interesse no ecossistema Ticket pra Já.
 
 A maioria das contribuições aos produtos depende de autorização e acesso aos repositórios privados. Não compartilhe código, dados ou documentos internos em issues ou pull requests públicos.
 
+## Idioma
+
+Escreva documentação, commits, pull requests, issues e revisões em **português do Brasil**. Prefixos de commit (`feat:`, `fix:`...) e nomes de código seguem as exceções da [ADR-003](docs/decisions/ADR-003-idioma-padrao.md).
+
 ## Fluxo recomendado
 
 1. Identifique a issue, solicitação ou objetivo da mudança.
