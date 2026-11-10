@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Fluxo de desenvolvimento
+    url: https://github.com/Ticket-Pra-Ja/.github/blob/main/docs/governance/fluxo-de-desenvolvimento.md
+    about: Como uma tarefa sai do Backlog e chega em produção.
+  - name: Vulnerabilidade de segurança
+    url: https://github.com/Ticket-Pra-Ja/.github/blob/main/SECURITY.md
+    about: Não abra issue pública para falhas de segurança.
