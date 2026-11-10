@@ -10,6 +10,9 @@ Repositório institucional de **padrões de engenharia e colaboração** da orga
 | --- | --- |
 | [Perfil institucional](profile/README.md) | Apresentação pública da organização |
 | [Padrões de engenharia](docs/ENGINEERING.md) | Arquitetura, tecnologias e práticas recomendadas |
+| [Governança](docs/governance/) | Nomes de repositórios, catálogo e política de acesso |
+| [Decisões (ADRs)](docs/decisions/) | Registro das decisões de arquitetura e governança |
+| [Instruções para agentes de IA](AGENTS.md) | Regras para agentes que leem ou alteram os repositórios |
 | [Contribuição](CONTRIBUTING.md) | Fluxo de mudanças, revisão e qualidade |
 | [Segurança](SECURITY.md) | Comunicação responsável de vulnerabilidades |
 | [Template de pull request](.github/PULL_REQUEST_TEMPLATE.md) | Checklist de revisão para mudanças |
