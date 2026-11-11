@@ -142,6 +142,7 @@ A adoção é por repositório, sem afetar os demais:
 |---|---|
 | `.github` | Exceção: só o Rafael mescla na `main` (`producao-somente-po`); não usa `development` |
 | `marketplace.ticketpraja` | Piloto adotado em 11/11/2026; fluxo testado de ponta a ponta (issue #2: Em andamento → Em revisão → Homologação → Concluído) |
+| `api.v2.ticketpraja` | Adotado em 11/11/2026 (issue #1) |
 
 ## Limites do que o GitHub garante
 
