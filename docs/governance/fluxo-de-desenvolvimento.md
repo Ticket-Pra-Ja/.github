@@ -24,10 +24,11 @@ Um único board para todos os repositórios: **[Ticket Pra Já — Desenvolvimen
 | Em andamento | Alguém assumiu e está desenvolvendo | Automático ao atribuir a issue |
 | Em revisão | PR aberto, aguardando a validação e o merge | Automático ao abrir o PR |
 | Homologação | Mesclado em `development`, em teste no ambiente de homologação | Automático no merge |
+| Aprovado | Testado em homologação e liberado para a próxima release | Rafael, depois de testar |
 | Concluído | Em produção | Automático no merge da release |
 | Bloqueado | Parada aguardando o PO (`needs-owner`) ou um impedimento (`blocked`) | Automático pelo label |
 
-Ninguém precisa arrastar card depois de **Pronto**: o status acompanha o que acontece no GitHub.
+Fora **Pronto** e **Aprovado**, que são decisões do Rafael, ninguém precisa arrastar card: o status acompanha o que acontece no GitHub.
 
 ## Pendências com o PO
 
@@ -93,8 +94,8 @@ fix: corrige arredondamento do NFC-e
 5. Autorize o commit. O agente faz commit e abre o PR para `development`.
 6. A validação automática confere branch, título e vínculo com a issue, e o build compila, roda o lint e os testes. Se algo falhar, peça ao agente para corrigir.
 7. Com a validação verde, o próprio desenvolvedor faz o merge em `development`. Não há revisão de outra pessoa nesta etapa: a revisão é a do desenvolvedor sobre o código gerado (passo 4), e a homologação é o teste. O card vai para **Homologação**.
-8. Teste os critérios de aceite no ambiente de homologação.
-9. Na release, um desenvolvedor (ou o Rafael) abre o PR `development → main/master` listando o que vai para produção. **Só o Rafael faz o merge.** Use merge comum, não squash, para a `development` e a branch padrão continuarem com o mesmo histórico. No merge, os cards vão para **Concluído** e as issues são fechadas.
+8. Teste os critérios de aceite no ambiente de homologação. Com tudo certo, o Rafael move o card para **Aprovado**.
+9. Na release, um desenvolvedor (ou o Rafael) abre o PR `development → main/master` listando o que vai para produção. O check **Portão de release** fica vermelho enquanto houver card do repositório em **Homologação** (testado e ainda não aprovado); depois de aprovar, rode o check de novo. **Só o Rafael faz o merge.** Use merge comum, não squash, para a `development` e a branch padrão continuarem com o mesmo histórico. No merge, os cards em **Aprovado** vão para **Concluído** e as issues são fechadas. Os que ainda estavam em **Homologação** também vão (o código deles já estava na `development`), com um comentário avisando que foram publicados sem aprovação.
 
 Depois de um `hotfix/`, leve a correção de volta para a `development`: crie uma issue, uma branch `chore/N-sincroniza-development` a partir da branch padrão e abra o PR para a `development`.
 
@@ -116,6 +117,7 @@ O agente de IA nunca mescla nem aprova nada: quem mescla em `development` é o d
 | Padrão de branch, título e `Closes #N` | `padrao-pr.yml` | Sim, nos repositórios em piloto |
 | Build, lint e testes (`build / Build e testes`) | `build-dotnet.yml` ou `build-node.yml` | Sim, nos repositórios em piloto |
 | Movimento dos cards | `sincroniza-board.yml` | Nunca |
+| Card ainda em Homologação no PR de release (`board / Portão de release`) | `sincroniza-board.yml` + `scripts/portao-release.js` | Avisa em vermelho; o Rafael pode mesclar mesmo assim |
 | 1 aprovação + sem push direto na branch padrão | Ruleset `protege-branch-principal` | Sim, nos repositórios ainda não adotados |
 | PR obrigatório e validação verde em `development` | Ruleset `protege-development` | Sim, nos repositórios em piloto |
 | Merge em produção só pelo Rafael | Ruleset `producao-somente-po` | Sim, nos repositórios em piloto |
