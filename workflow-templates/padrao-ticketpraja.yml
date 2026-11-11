@@ -1,0 +1,23 @@
+# Adota o fluxo de desenvolvimento da Ticket Pra Já neste repositório.
+# Copie para .github/workflows/padrao-ticketpraja.yml no repositório de produto.
+name: Padrão Ticket Pra Já
+
+on:
+  pull_request:
+    types: [opened, reopened, edited, synchronize, ready_for_review, closed]
+  issues:
+    types: [assigned]
+
+permissions:
+  contents: read
+  pull-requests: read
+  issues: read
+
+jobs:
+  padrao-pr:
+    if: github.event_name == 'pull_request' && github.event.action != 'closed'
+    uses: Ticket-Pra-Ja/.github/.github/workflows/padrao-pr.yml@main
+
+  board:
+    uses: Ticket-Pra-Ja/.github/.github/workflows/sincroniza-board.yml@main
+    secrets: inherit

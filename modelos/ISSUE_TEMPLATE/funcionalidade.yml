@@ -1,0 +1,61 @@
+name: Funcionalidade
+description: Nova funcionalidade ou melhoria percebida pelo cliente ou pela operação.
+title: "feat: "
+type: Feature
+projects: ["Ticket-Pra-Ja/4"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Descreva **o problema e o resultado esperado**, não a solução técnica.
+        O agente de IA no Cursor gera o código a partir deste texto — quanto mais claro, melhor o resultado.
+  - type: textarea
+    id: contexto
+    attributes:
+      label: Contexto
+      description: Qual problema existe hoje? Quem é afetado?
+      placeholder: "Hoje o produtor não consegue..."
+    validations:
+      required: true
+  - type: textarea
+    id: objetivo
+    attributes:
+      label: Objetivo
+      description: O que deve ser possível depois da entrega?
+      placeholder: "Como produtor, quero ... para ..."
+    validations:
+      required: true
+  - type: textarea
+    id: criterios
+    attributes:
+      label: Critérios de aceite
+      description: Uma linha por critério, verificável em homologação.
+      placeholder: |
+        - [ ] Dado ..., quando ..., então ...
+        - [ ] ...
+    validations:
+      required: true
+  - type: textarea
+    id: fora-de-escopo
+    attributes:
+      label: Fora de escopo
+      description: O que NÃO deve ser feito nesta tarefa.
+    validations:
+      required: false
+  - type: textarea
+    id: notas-tecnicas
+    attributes:
+      label: Notas técnicas
+      description: Telas, endpoints, tabelas ou arquivos envolvidos, se souber.
+    validations:
+      required: false
+  - type: dropdown
+    id: area-sensivel
+    attributes:
+      label: Toca em área sensível?
+      description: Pagamentos, emissão fiscal, autenticação, dados pessoais (LGPD) ou banco de produção.
+      options:
+        - "Não"
+        - "Sim — exige revisão humana detalhada"
+    validations:
+      required: true

@@ -1,0 +1,62 @@
+---
+description: Fluxo obrigatório de desenvolvimento da Ticket Pra Já (issue → branch → PR → homologação → produção)
+alwaysApply: true
+---
+
+# Fluxo de desenvolvimento — Ticket Pra Já
+
+Você é o agente que escreve o código. O desenvolvedor descreve, revisa e autoriza. Siga este fluxo **sem exceções**. Responda e escreva sempre em português do Brasil.
+
+## 1. Só trabalhe a partir de uma issue
+
+- Peça o número da issue se o desenvolvedor não informar. Sem issue, não comece.
+- Leia a issue inteira: `gh issue view <N> --comments`.
+- Se faltar critério de aceite ou houver ambiguidade, pare e pergunte. Não invente requisito.
+- Assuma a issue para o desenvolvedor: `gh issue edit <N> --add-assignee @me`
+  (o board move o card para **Em andamento** automaticamente).
+
+## 2. Crie a branch no padrão
+
+- Parta sempre da `development` atualizada:
+  `git fetch origin && git switch -c <tipo>/<N>-<descricao-curta> origin/development`
+- `<tipo>`: `feat`, `fix`, `chore`, `docs`, `refactor`, `test` ou `hotfix`.
+- `<descricao-curta>`: kebab-case, sem acento, até 5 palavras.
+- `hotfix/` é a única que parte da branch padrão (`main`/`master`), e só com autorização do Rafael.
+- Nunca faça commit direto em `development`, `main` ou `master`.
+
+## 3. Implemente
+
+- Faça a menor mudança que atende os critérios de aceite. Nada fora do escopo da issue.
+- Siga o estilo de código já existente no repositório.
+- Escreva ou ajuste testes quando o repositório tiver testes.
+- Nunca grave segredo, senha, token, connection string ou dado pessoal em arquivo versionado. Use variáveis de ambiente e atualize o `.env.example` só com os nomes.
+- Áreas sensíveis (pagamento, emissão fiscal, autenticação, LGPD, banco de produção): avise o desenvolvedor explicitamente no resumo.
+
+## 4. Mostre antes de commitar
+
+- Apresente um resumo do que mudou, arquivo por arquivo, e peça ao desenvolvedor para revisar o diff.
+- **Só faça commit depois que o desenvolvedor aprovar.**
+- Mensagem de commit em Conventional Commits, descrição em português:
+  `feat(checkout): permite cupom por lote (#123)`
+
+## 5. Abra o PR
+
+- Base: `development`. Título no mesmo padrão do commit.
+- Corpo: siga o modelo de PR e mantenha `Closes #<N>` na primeira linha.
+- Comando: `gh pr create --base development --title "<título>" --body-file <arquivo>`
+- O board move o card para **Em revisão**. A validação automática de padrão precisa passar.
+- Não faça merge. Quem aprova e faz merge é o revisor.
+
+## 6. Depois do PR
+
+- Ajustes pedidos na revisão: novos commits na mesma branch, sem force-push.
+- Merge em `development` → card vai para **Homologação**.
+- PR de release `development` → branch padrão → card vai para **Concluído** e a issue é fechada.
+
+## Proibido
+
+- Commit ou push em `development`, `main`, `master`.
+- Merge de PR, inclusive o próprio.
+- Apagar ou renomear branch que não seja a sua.
+- Alterar workflows em `.github/workflows` sem issue específica para isso.
+- Rodar comandos contra banco ou serviço de produção.
