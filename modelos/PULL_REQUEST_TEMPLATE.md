@@ -21,3 +21,6 @@ Closes #
 - [ ] Nenhum segredo, senha, token ou dado pessoal no diff
 - [ ] Migração de banco? Se sim, descrevi como reverter
 - [ ] Toca em área sensível (pagamento, fiscal, autenticação, LGPD)? Se sim, sinalizei para revisão
+
+<!-- Revisão: outra pessoa aprova (nunca o autor). Em development, mescla após aprovação e checks. Em produção, só o Rafael mescla. -->
+
