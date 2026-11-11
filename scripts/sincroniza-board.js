@@ -7,7 +7,8 @@
 //   outra pessoa remove needs-owner        -> label devolvido
 //   PR aberto/reaberto/pronto p/ revisão   -> Em revisão (issues citadas com "Closes #N")
 //   PR mesclado em development             -> Homologação
-//   PR de release development -> padrão    -> Concluído + fecha as issues em Homologação do repositório
+//   card movido para Aprovado              -> manual, pelo PO, depois de testar no sandbox
+//   PR de release development -> padrão    -> Concluído + fecha as issues em Aprovado/Homologação do repositório
 //   PR hotfix/ mesclado na branch padrão   -> Concluído
 module.exports = async ({ github, context, core }) => {
   const ORG = 'Ticket-Pra-Ja';
@@ -135,7 +136,8 @@ module.exports = async ({ github, context, core }) => {
       }
 
       if (base === padrao && head === 'development') {
-        // Release: tudo que estava em Homologação neste repositório foi para produção.
+        // Release: tudo que estava em Aprovado ou Homologação neste repositório foi para produção.
+        // Homologação sem aprovação também vai (o código já estava na development), com aviso na issue.
         let cursor = null;
         do {
           const r = await github.graphql(`
@@ -161,11 +163,14 @@ module.exports = async ({ github, context, core }) => {
           for (const it of pagina.nodes) {
             const c = it.content;
             if (!c || !c.repository || c.repository.nameWithOwner !== repoCompleto) continue;
-            if (!it.status || it.status.name !== 'Homologação') continue;
+            if (!it.status || !['Aprovado', 'Homologação'].includes(it.status.name)) continue;
+            const semAprovacao = it.status.name === 'Homologação';
             await definirStatus(it.id, 'Concluído');
             if (c.state === 'OPEN') {
               await github.rest.issues.createComment({ owner, repo, issue_number: c.number,
-                body: `Publicado em produção pelo PR #${pr.number}.` });
+                body: semAprovacao
+                  ? `Publicado em produção pelo PR #${pr.number} **sem aprovação em homologação** (o card ainda estava em Homologação).`
+                  : `Publicado em produção pelo PR #${pr.number}.` });
               await github.rest.issues.update({ owner, repo, issue_number: c.number,
                 state: 'closed', state_reason: 'completed' });
             }
