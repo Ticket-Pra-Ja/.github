@@ -10,14 +10,15 @@ O desenvolvimento hoje não tem padrão: branches pessoais (`juan_dev`, `wagner_
 
 ## Decisão
 
-1. **Um board único** (projeto 4) para todos os repositórios, com os status Backlog → Pronto → Em andamento → Em revisão → Homologação → Concluído.
+1. **Um board único** (projeto 4) para todos os repositórios, com os status Backlog → Pronto → Em andamento → Em revisão → Homologação → Concluído, mais Bloqueado.
 2. **Toda mudança nasce de uma issue** criada por formulário com critérios de aceite obrigatórios.
 3. **Branches**: `development` = homologação; branch padrão = produção; trabalho em `tipo/NUMERO-descricao`.
 4. **Conventional Commits** em títulos de PR e commits, com descrição em português (ADR-003).
 5. **Status do board é automático** a partir de eventos do GitHub, via workflow reutilizável e GitHub App.
 6. **Padrão verificado por máquina**: workflow `padrao-pr.yml` como check obrigatório nos repositórios adotantes.
 7. **Agente orientado por regra versionada** (`.cursor/rules/fluxo-ticketpraja.mdc`): só trabalha a partir de issue e só commita após aprovação do desenvolvedor.
-8. **Adoção gradual por repositório**, começando por um piloto. Nada é ativado de forma global até o piloto ser validado.
+8. **Pendências com o PO por label**: `needs-owner` move o card para Bloqueado e avisa o Rafael; só ele remove o label, e a remoção devolve a tarefa ao responsável. Impedimentos técnicos usam `blocked`. Mesmo padrão adotado na Ideavelo.
+9. **Adoção gradual por repositório**, começando por um piloto. Nada é ativado de forma global até o piloto ser validado.
 
 ## Consequências
 

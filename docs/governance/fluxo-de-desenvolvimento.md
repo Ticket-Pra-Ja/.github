@@ -25,8 +25,24 @@ Um único board para todos os repositórios: **[Ticket Pra Já — Desenvolvimen
 | Em revisão | PR aberto aguardando revisão | Automático ao abrir o PR |
 | Homologação | Mesclado em `development`, em teste no ambiente de homologação | Automático no merge |
 | Concluído | Em produção | Automático no merge da release |
+| Bloqueado | Parada aguardando o PO (`needs-owner`) ou um impedimento (`blocked`) | Automático pelo label |
 
 Ninguém precisa arrastar card depois de **Pronto**: o status acompanha o que acontece no GitHub.
+
+## Pendências com o PO
+
+Quando uma tarefa depende de algo que só o Rafael pode dar — decisão, autorização, acesso, gasto ou segredo — o agente ou o dev:
+
+1. adiciona o label `needs-owner` na issue;
+2. comenta começando com `**Ação do PO necessária:**`: o que é preciso e por quê, as opções com recomendação e onde agir. Segredos nunca são pedidos na issue.
+
+O card vai para **Bloqueado** e o Rafael é marcado num comentário automático.
+
+**Caixa de entrada do PO:** [issues abertas com `needs-owner`](https://github.com/issues?q=is%3Aopen+org%3ATicket-Pra-Ja+label%3Aneeds-owner).
+
+Para liberar, o Rafael responde na issue e remove o label. O card volta para **Em andamento** (ou **Pronto**, se ninguém estiver atribuído) e o responsável é marcado para retomar. Só o Rafael pode remover `needs-owner`: se outra pessoa remover, a automação devolve o label.
+
+Impedimentos técnicos ou externos (outra issue, sistema fora do ar) usam o label `blocked`, que qualquer um remove quando o impedimento acaba.
 
 ## Tipos de tarefa
 
@@ -99,8 +115,9 @@ A adoção é por repositório, sem afetar os demais:
    - `modelos/PULL_REQUEST_TEMPLATE.md` → `.github/PULL_REQUEST_TEMPLATE.md`
    - `modelos/cursor/rules/fluxo-ticketpraja.mdc` → `.cursor/rules/`
    - `workflow-templates/padrao-ticketpraja.yml` → `.github/workflows/`
-3. Proteger `development` (PR obrigatório) e exigir o check **Validar padrão do PR**.
-4. Atualizar a tabela abaixo.
+3. Criar os labels `needs-owner` ("Aguardando decisão do PO", vermelho) e `blocked` ("Parada por impedimento técnico ou externo", laranja).
+4. Proteger `development` (PR obrigatório) e exigir o check **Validar padrão do PR**.
+5. Atualizar a tabela abaixo.
 
 | Repositório | Situação |
 |---|---|

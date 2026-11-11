@@ -1,8 +1,21 @@
 // Move os cards do board "Ticket Pra Já — Desenvolvimento" (projeto 4) conforme o trabalho anda.
 // Chamado pelo workflow reutilizável .github/workflows/sincroniza-board.yml.
+//
+//   issue atribuída                        -> Em andamento (se não estiver bloqueada)
+//   label needs-owner / blocked            -> Bloqueado (needs-owner marca o PO)
+//   PO remove needs-owner / remove blocked -> Em andamento (ou Pronto sem responsável) e avisa o responsável
+//   outra pessoa remove needs-owner        -> label devolvido
+//   PR aberto/reaberto/pronto p/ revisão   -> Em revisão (issues citadas com "Closes #N")
+//   PR mesclado em development             -> Homologação
+//   PR de release development -> padrão    -> Concluído + fecha as issues em Homologação do repositório
+//   PR hotfix/ mesclado na branch padrão   -> Concluído
 module.exports = async ({ github, context, core }) => {
   const ORG = 'Ticket-Pra-Ja';
   const NUM = 4;
+  const PO = 'rafaelmoraishmb';           // único que pode liberar needs-owner
+  const LABEL_PO = 'needs-owner';         // tarefa parada aguardando decisão do PO
+  const LABEL_BLOQUEIO = 'blocked';       // parada por dependência técnica ou externa
+  const LABELS_BLOQUEIO = [LABEL_PO, LABEL_BLOQUEIO];
   const { owner, repo } = context.repo;
   const repoCompleto = `${owner}/${repo}`;
   const padrao = context.payload.repository.default_branch;
@@ -60,9 +73,47 @@ module.exports = async ({ github, context, core }) => {
   // ---------- eventos ----------
   const ev = context.eventName;
   const acao = context.payload.action;
+  const nomesLabels = (issue) => (issue.labels || []).map(l => (l.name || '').toLowerCase());
+  const bloqueada = (issue) => nomesLabels(issue).some(n => LABELS_BLOQUEIO.includes(n));
 
   if (ev === 'issues' && acao === 'assigned') {
+    if (bloqueada(context.payload.issue)) return; // continua em Bloqueado até liberar
     await moverIssue(context.payload.issue.number, 'Em andamento');
+    return;
+  }
+
+  if (ev === 'issues' && (acao === 'labeled' || acao === 'unlabeled')) {
+    const issue = context.payload.issue;
+    const label = (context.payload.label?.name || '').toLowerCase();
+    const quem = context.payload.sender?.login || '';
+    const ehBot = context.payload.sender?.type === 'Bot';
+    if (issue.state !== 'open' || !LABELS_BLOQUEIO.includes(label)) return;
+
+    if (acao === 'labeled') {
+      await moverIssue(issue.number, 'Bloqueado');
+      if (label === LABEL_PO && !ehBot) {
+        await github.rest.issues.createComment({ owner, repo, issue_number: issue.number,
+          body: `@${PO} esta tarefa está parada aguardando você. Responda aqui e remova o label \`${LABEL_PO}\` para liberar.` });
+      }
+      return;
+    }
+
+    // unlabeled
+    if (label === LABEL_PO && quem !== PO && !ehBot) {
+      await github.rest.issues.addLabels({ owner, repo, issue_number: issue.number, labels: [LABEL_PO] });
+      await github.rest.issues.createComment({ owner, repo, issue_number: issue.number,
+        body: `@${quem} só o PO (@${PO}) pode remover o label \`${LABEL_PO}\`. O label foi restaurado.` });
+      return;
+    }
+    if (bloqueada(issue)) return; // ainda tem outro label de bloqueio
+
+    const responsaveis = (issue.assignees || []).map(a => a.login);
+    await moverIssue(issue.number, responsaveis.length ? 'Em andamento' : 'Pronto');
+    if (responsaveis.length) {
+      const motivo = label === LABEL_PO ? 'O PO respondeu' : 'O bloqueio foi removido';
+      await github.rest.issues.createComment({ owner, repo, issue_number: issue.number,
+        body: `${responsaveis.map(l => '@' + l).join(' ')} ${motivo}; pode retomar. Leia os últimos comentários antes de continuar.` });
+    }
     return;
   }
 
