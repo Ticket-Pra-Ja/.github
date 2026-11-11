@@ -18,7 +18,7 @@ O desenvolvimento hoje não tem padrão: branches pessoais (`juan_dev`, `wagner_
 6. **Padrão verificado por máquina**: workflow `padrao-pr.yml` como check obrigatório nos repositórios adotantes.
 7. **Agente orientado por regra versionada** (`.cursor/rules/fluxo-ticketpraja.mdc`): só trabalha a partir de issue e só commita após aprovação do desenvolvedor.
 8. **Pendências com o PO por label**: `needs-owner` move o card para Bloqueado e avisa o Rafael; só ele remove o label, e a remoção devolve a tarefa ao responsável. Impedimentos técnicos usam `blocked`. Mesmo padrão adotado na Ideavelo.
-9. **Merges em dois níveis**: em `development`, o próprio desenvolvedor mescla o seu PR com a validação verde, sem revisão de outra pessoa, adequado ao tamanho da equipe; em produção (`main`/`master`, inclusive hotfix), o PR é aberto por um desenvolvedor e o PO aprova e mescla. Garantido por regras de branch; os limites estão no documento do fluxo.
+9. **Merges em dois níveis**: em `development`, o próprio desenvolvedor mescla o seu PR com a validação verde, sem revisão de outra pessoa, adequado ao tamanho da equipe; em produção (`main`/`master`, inclusive hotfix), o PR é obrigatório, sem exigência de aprovação, e só o PO mescla. Garantido pelos rulesets da organização `protege-development` e `producao-somente-po`; os limites estão no documento do fluxo. O repositório `.github` segue a mesma regra de produção.
 10. **Adoção gradual por repositório**, começando por um piloto. Nada é ativado de forma global até o piloto ser validado.
 
 ## Consequências
