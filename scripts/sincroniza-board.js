@@ -122,7 +122,8 @@ module.exports = async ({ github, context, core }) => {
     const base = pr.base.ref;
     const head = pr.head.ref;
 
-    if (['opened', 'reopened', 'ready_for_review', 'edited'].includes(acao) && !pr.draft) {
+    // Só PRs abertos: editar a descrição de um PR já mesclado não pode devolver as issues para Em revisão.
+    if (['opened', 'reopened', 'ready_for_review', 'edited'].includes(acao) && pr.state === 'open' && !pr.draft) {
       for (const n of issuesDoPR(pr)) await moverIssue(n, 'Em revisão');
       return;
     }
