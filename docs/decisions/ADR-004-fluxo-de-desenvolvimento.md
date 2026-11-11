@@ -10,7 +10,7 @@ O desenvolvimento hoje não tem padrão: branches pessoais (`juan_dev`, `wagner_
 
 ## Decisão
 
-1. **Um board único** (projeto 4) para todos os repositórios, com os status Backlog → Pronto → Em andamento → Em revisão → Homologação → Concluído, mais Bloqueado.
+1. **Um board único** (projeto 4) para todos os repositórios, com os status Backlog → Pronto → Em andamento → Em revisão → Homologação → Aprovado → Concluído, mais Bloqueado. Aprovado é marcado pelo PO depois do teste em homologação, e o PR de release mostra em vermelho o que ainda não foi aprovado.
 2. **Toda mudança nasce de uma issue** criada por formulário com critérios de aceite obrigatórios.
 3. **Branches**: `development` = homologação; branch padrão = produção; trabalho em `tipo/NUMERO-descricao`.
 4. **Conventional Commits** em títulos de PR e commits, com descrição em português (ADR-003).

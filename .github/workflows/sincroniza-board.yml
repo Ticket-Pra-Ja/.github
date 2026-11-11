@@ -57,3 +57,38 @@ jobs:
           script: |
             const run = require(`${process.env.GITHUB_WORKSPACE}/.tpj/scripts/sincroniza-board.js`);
             await run({ github, context, core });
+
+  # PR de release (development -> branch padrão): falha se algum card do repositório
+  # ainda estiver em Homologação. Lógica em scripts/portao-release.js.
+  portao-release:
+    name: Portão de release
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.action != 'closed' &&
+      github.event.pull_request.head.ref == 'development' &&
+      github.event.pull_request.base.ref == github.event.repository.default_branch
+    runs-on: ubuntu-latest
+    steps:
+      - name: Gerar token do GitHub App
+        id: token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.TPJ_BOARD_APP_ID }}
+          private-key: ${{ secrets.TPJ_BOARD_APP_KEY }}
+          owner: Ticket-Pra-Ja
+
+      - name: Baixar script
+        uses: actions/checkout@v4
+        with:
+          repository: Ticket-Pra-Ja/.github
+          ref: main
+          path: .tpj
+          sparse-checkout: scripts
+
+      - name: Conferir aprovações
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ steps.token.outputs.token }}
+          script: |
+            const run = require(`${process.env.GITHUB_WORKSPACE}/.tpj/scripts/portao-release.js`);
+            await run({ github, context, core });
