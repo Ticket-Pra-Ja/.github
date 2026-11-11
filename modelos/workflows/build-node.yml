@@ -1,0 +1,14 @@
+# Build e testes em todo PR e em todo push nas branches principais.
+name: Build
+
+on:
+  pull_request:
+  push:
+    branches: [development, main]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    uses: Ticket-Pra-Ja/.github/.github/workflows/build-node.yml@main
