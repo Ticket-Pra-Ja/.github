@@ -9,7 +9,7 @@ Como uma tarefa sai da ideia e chega em produção na Ticket Pra Já. Decisão r
 | Papel | Quem | Responsabilidade |
 |---|---|---|
 | PO | Rafael | Prioriza o Backlog, responde pendências `needs-owner`, autoriza e executa os merges em produção (releases e hotfixes) |
-| Desenvolvedor | Juan, Wagner | Escolhe tarefa em **Pronto**, conduz o agente no Cursor, revisa o código gerado, revisa o PR do colega, mescla em `development` após aprovação, testa em homologação |
+| Desenvolvedor | Juan, Wagner | Escolhe tarefa em **Pronto**, conduz o agente no Cursor, revisa o código gerado, mescla o próprio PR em `development` quando a validação passar, testa em homologação, abre o PR de release |
 | Projetos | Marcos | Acompanha o board (somente leitura) |
 | Agente de IA | Cursor | Escreve o código a partir da issue, seguindo `.cursor/rules/fluxo-ticketpraja.mdc` |
 
@@ -22,7 +22,7 @@ Um único board para todos os repositórios: **[Ticket Pra Já — Desenvolvimen
 | Backlog | Ideia registrada, ainda não refinada | Automático ao criar a issue |
 | Pronto | Refinada, com critérios de aceite; pode ser puxada | Rafael |
 | Em andamento | Alguém assumiu e está desenvolvendo | Automático ao atribuir a issue |
-| Em revisão | PR aberto aguardando revisão | Automático ao abrir o PR |
+| Em revisão | PR aberto, aguardando a validação e o merge | Automático ao abrir o PR |
 | Homologação | Mesclado em `development`, em teste no ambiente de homologação | Automático no merge |
 | Concluído | Em produção | Automático no merge da release |
 | Bloqueado | Parada aguardando o PO (`needs-owner`) ou um impedimento (`blocked`) | Automático pelo label |
@@ -92,18 +92,18 @@ fix: corrige arredondamento do NFC-e
 4. O agente mostra o resumo do que mudou. **Revise o diff.** Peça ajustes até ficar bom.
 5. Autorize o commit. O agente faz commit e abre o PR para `development`.
 6. A validação automática confere branch, título e vínculo com a issue. Se falhar, peça ao agente para corrigir.
-7. Outro desenvolvedor (ou o Rafael) revisa e aprova. Com a aprovação e os checks verdes, o autor ou o revisor faz o merge em `development`. O card vai para **Homologação**.
+7. Com a validação verde, o próprio desenvolvedor faz o merge em `development`. Não há revisão de outra pessoa nesta etapa: a revisão é a do desenvolvedor sobre o código gerado (passo 4), e a homologação é o teste. O card vai para **Homologação**.
 8. Teste os critérios de aceite no ambiente de homologação.
-9. Na release, um desenvolvedor abre o PR `development → main/master` listando o que vai para produção. Outra pessoa aprova e **só o Rafael faz o merge**. No merge, os cards vão para **Concluído** e as issues são fechadas.
+9. Na release, um desenvolvedor abre o PR `development → main/master` listando o que vai para produção. **O Rafael aprova e faz o merge.** Por isso o PR de release (e o de `hotfix/`) é sempre aberto por um desenvolvedor, nunca pelo Rafael: o GitHub não deixa o autor aprovar o próprio PR. No merge, os cards vão para **Concluído** e as issues são fechadas.
 
 ## Quem pode mesclar
 
 | Destino | Quem aprova | Quem mescla | Como o GitHub garante |
 |---|---|---|---|
-| `development` (homologação) | Qualquer pessoa com escrita, **exceto o autor** | Qualquer desenvolvedor autorizado, depois da aprovação e dos checks | Regra da branch: PR obrigatório, 1 aprovação, aprovação refeita se houver push novo, check **Validar padrão do PR** |
-| `main`/`master` (produção), inclusive `hotfix/` | Qualquer pessoa com escrita, **exceto o autor** | **Somente o Rafael** | Regra da organização `protege-branch-principal` (PR + 1 aprovação) e regra do repositório que só deixa o owner da organização atualizar a branch, e apenas por PR |
+| `development` (homologação) | Não exige aprovação | O próprio desenvolvedor, com a validação verde | Regra da branch: PR obrigatório e check **Validar padrão do PR**; sem push direto |
+| `main`/`master` (produção), inclusive `hotfix/` | **O Rafael** (PR aberto por um desenvolvedor) | **Somente o Rafael** | Regra da organização `protege-branch-principal` (PR + 1 aprovação) e regra do repositório que só deixa o owner da organização atualizar a branch, e apenas por PR |
 
-O autor nunca aprova o próprio PR (o GitHub bloqueia). O agente de IA nunca mescla nada.
+O agente de IA nunca mescla nem aprova nada: quem mescla em `development` é o desenvolvedor, depois de revisar o que o agente gerou.
 
 ## O que é automático e o que bloqueia
 
@@ -112,7 +112,7 @@ O autor nunca aprova o próprio PR (o GitHub bloqueia). O agente de IA nunca mes
 | Padrão de branch, título e `Closes #N` | `padrao-pr.yml` | Sim, nos repositórios em piloto |
 | Movimento dos cards | `sincroniza-board.yml` | Nunca |
 | 1 aprovação + sem push direto na branch padrão | Ruleset `protege-branch-principal` | Sim, em todos os repositórios |
-| 1 aprovação de outra pessoa em `development` | Ruleset `protege-development` | Sim, nos repositórios em piloto |
+| PR obrigatório e validação verde em `development` | Ruleset `protege-development` | Sim, nos repositórios em piloto |
 | Merge em produção só pelo Rafael | Ruleset `producao-somente-po` | Sim, nos repositórios em piloto |
 | Regras para o agente | `.cursor/rules/fluxo-ticketpraja.mdc` | Orienta o agente no Cursor |
 
@@ -127,7 +127,7 @@ A adoção é por repositório, sem afetar os demais:
    - `modelos/cursor/rules/fluxo-ticketpraja.mdc` → `.cursor/rules/`
    - `workflow-templates/padrao-ticketpraja.yml` → `.github/workflows/`
 3. Criar os labels `needs-owner` ("Aguardando decisão do PO", vermelho) e `blocked` ("Parada por impedimento técnico ou externo", laranja).
-4. Criar no repositório a regra `protege-development` para a branch `development`: exigir PR, 1 aprovação, aprovação refeita após push novo, check **Validar padrão do PR** e bloquear exclusão e force push. Sem lista de exceções.
+4. Criar no repositório a regra `protege-development` para a branch `development`: exigir PR (sem aprovação mínima), check **Validar padrão do PR** e bloquear exclusão e force push. Sem lista de exceções.
 5. Criar no repositório a regra `producao-somente-po` para a branch padrão: **Restrict updates**, com exceção apenas para **Organization admin**, no modo **For pull requests only**.
 6. Atualizar a tabela abaixo.
 
@@ -138,8 +138,9 @@ A adoção é por repositório, sem afetar os demais:
 ## Limites do que o GitHub garante
 
 - "Só o Rafael mescla em produção" é garantido pelo papel **owner da organização**, e não pelo usuário dele. Quando houver um segundo owner, ele também poderá mesclar.
-- A aprovação exigida pode vir de qualquer pessoa com escrita no repositório, inclusive do Rafael. Com só dois desenvolvedores, a ausência de um deles faz o outro depender do Rafael para aprovar.
-- O agente do Cursor usa a credencial do desenvolvedor. A proibição de o agente mesclar vem da regra do Cursor; o que impede um merge sem revisão é a aprovação obrigatória de outra pessoa.
+- Em `development` não há segunda pessoa olhando o código antes do merge. O que segura a qualidade é a revisão do próprio desenvolvedor, a validação automática e o teste em homologação. Na produção, a aprovação do Rafael é o portão.
+- A aprovação exigida em produção pode vir de qualquer pessoa com escrita no repositório. A regra `producao-somente-po` garante que só o Rafael mescla, mas não que só ele aprova.
+- O agente do Cursor usa a credencial do desenvolvedor. A proibição de o agente mesclar vem da regra do Cursor; o GitHub não distingue o agente do desenvolvedor. Em produção, o que impede um merge sem autorização é a regra `producao-somente-po`.
 - Até a validação virar obrigatória pela organização (passo seguinte ao piloto), quem tem acesso de administrador ao repositório pode desligar a regra do próprio repositório. Os desenvolvedores têm acesso de escrita, não de administrador.
 
 ## Pré-requisito único

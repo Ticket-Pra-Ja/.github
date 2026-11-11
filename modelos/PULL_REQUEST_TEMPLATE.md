@@ -22,5 +22,5 @@ Closes #
 - [ ] Migração de banco? Se sim, descrevi como reverter
 - [ ] Toca em área sensível (pagamento, fiscal, autenticação, LGPD)? Se sim, sinalizei para revisão
 
-<!-- Revisão: outra pessoa aprova (nunca o autor). Em development, mescla após aprovação e checks. Em produção, só o Rafael mescla. -->
+<!-- Em development, o autor mescla com a validação verde. Em produção (release e hotfix), o Rafael aprova e mescla. -->
 
