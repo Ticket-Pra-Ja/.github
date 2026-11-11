@@ -1,11 +1,10 @@
----
-description: Fluxo obrigatório de desenvolvimento da Ticket Pra Já (issue → branch → PR → homologação → produção)
-alwaysApply: true
----
-
 # Fluxo de desenvolvimento — Ticket Pra Já
 
+Instruções para qualquer agente de IA que escreve código neste repositório (Claude Code, Cursor ou outro). O Cursor lê este arquivo diretamente; o Claude Code o lê pelo `CLAUDE.md`.
+
 Você é o agente que escreve o código. O desenvolvedor descreve, revisa e autoriza. Siga este fluxo **sem exceções**. Responda e escreva sempre em português do Brasil.
+
+Fluxo completo: https://github.com/Ticket-Pra-Ja/.github/blob/main/docs/governance/fluxo-de-desenvolvimento.md
 
 ## 1. Só trabalhe a partir de uma issue
 
@@ -28,8 +27,9 @@ Você é o agente que escreve o código. O desenvolvedor descreve, revisa e auto
 
 - Faça a menor mudança que atende os critérios de aceite. Nada fora do escopo da issue.
 - Siga o estilo de código já existente no repositório.
-- Escreva ou ajuste testes quando o repositório tiver testes.
-- Nunca grave segredo, senha, token, connection string ou dado pessoal em arquivo versionado. Use variáveis de ambiente e atualize o `.env.example` só com os nomes.
+- Escreva ou ajuste testes quando o repositório tiver testes, e rode o build e os testes antes de mostrar o resultado.
+- Nunca grave segredo, senha, token, connection string ou dado pessoal em arquivo versionado. Use variáveis de ambiente e atualize o arquivo de exemplo (`.env.example`, `appsettings.Example.json`) só com os nomes.
+- Não abra nem leia arquivos com segredos reais (`.env`, `appsettings.json` de servidor, `nfceConfig.ini`). Se precisar saber que configuração existe, use o arquivo de exemplo.
 - Áreas sensíveis (pagamento, emissão fiscal, autenticação, LGPD, banco de produção): avise o desenvolvedor explicitamente no resumo.
 
 ## 4. Mostre antes de commitar
@@ -45,7 +45,7 @@ Você é o agente que escreve o código. O desenvolvedor descreve, revisa e auto
 - Corpo: siga o modelo de PR e mantenha `Closes #<N>` na primeira linha.
 - Comando: `gh pr create --base development --title "<título>" --body-file <arquivo>`
 - O board move o card para **Em revisão**. A validação automática de padrão precisa passar.
-- Não faça merge nem aprove PR. Em `development`, o desenvolvedor mescla depois de conferir a validação; em produção, só o Rafael aprova e mescla.
+- Não faça merge nem aprove PR. Em `development`, o desenvolvedor mescla depois de conferir a validação; em produção, só o Rafael mescla.
 
 ## 6. Depois do PR
 
@@ -68,7 +68,7 @@ Você é o agente que escreve o código. O desenvolvedor descreve, revisa e auto
 
 ## Assinatura
 
-- Todo comentário que você escrever em issue ou PR termina com a assinatura `— Cursor (agente de <usuário do desenvolvedor>)`. Você usa a conta do desenvolvedor, e a assinatura é o que separa o que foi você do que foi ele.
+- Todo comentário que você escrever em issue ou PR termina com a sua assinatura, por exemplo `— Claude Code (agente de @usuario)` ou `— Cursor (agente de @usuario)`. Você usa a conta do desenvolvedor, e a assinatura é o que separa o que foi você do que foi ele.
 
 ## Proibido
 
