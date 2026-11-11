@@ -1,0 +1,62 @@
+name: Bug
+description: Algo que funcionava ou deveria funcionar e não funciona.
+title: "fix: "
+type: Bug
+projects: ["Ticket-Pra-Ja/4"]
+body:
+  - type: textarea
+    id: comportamento-atual
+    attributes:
+      label: Comportamento atual
+      description: O que acontece hoje? Inclua mensagem de erro, print ou link.
+    validations:
+      required: true
+  - type: textarea
+    id: comportamento-esperado
+    attributes:
+      label: Comportamento esperado
+    validations:
+      required: true
+  - type: textarea
+    id: passos
+    attributes:
+      label: Como reproduzir
+      placeholder: |
+        1. Acesse ...
+        2. Clique em ...
+        3. Veja o erro
+    validations:
+      required: true
+  - type: dropdown
+    id: ambiente
+    attributes:
+      label: Ambiente
+      options:
+        - Produção
+        - Homologação
+        - Local
+    validations:
+      required: true
+  - type: dropdown
+    id: impacto
+    attributes:
+      label: Impacto
+      options:
+        - "Crítico — vendas ou emissão paradas"
+        - "Alto — afeta muitos clientes, sem contorno"
+        - "Médio — existe contorno"
+        - "Baixo — cosmético"
+    validations:
+      required: true
+  - type: textarea
+    id: criterios
+    attributes:
+      label: Critérios de aceite
+      placeholder: |
+        - [ ] O cenário descrito não ocorre mais
+        - [ ] ...
+    validations:
+      required: true
+  - type: markdown
+    attributes:
+      value: "⚠️ Não cole senhas, tokens, CPF ou dados de cartão nesta issue."

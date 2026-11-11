@@ -1,0 +1,15 @@
+# Move os cards das pendências de governança (issues deste repositório) no board de desenvolvimento.
+# Mesma lógica dos repositórios de produto: needs-owner/blocked -> Bloqueado; ao liberar, volta.
+name: Board — pendências de governança
+
+on:
+  issues:
+    types: [assigned, labeled, unlabeled]
+
+permissions:
+  contents: read
+
+jobs:
+  board:
+    uses: ./.github/workflows/sincroniza-board.yml
+    secrets: inherit

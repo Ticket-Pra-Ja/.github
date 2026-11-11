@@ -1,0 +1,34 @@
+name: Tarefa técnica
+description: Melhoria interna sem mudança visível ao cliente (refatoração, infraestrutura, dependências, segurança).
+title: "chore: "
+type: Task
+projects: ["Ticket-Pra-Ja/4"]
+body:
+  - type: textarea
+    id: motivacao
+    attributes:
+      label: Motivação
+      description: Por que isso precisa ser feito agora?
+    validations:
+      required: true
+  - type: textarea
+    id: o-que-fazer
+    attributes:
+      label: O que fazer
+    validations:
+      required: true
+  - type: textarea
+    id: criterios
+    attributes:
+      label: Critérios de aceite
+      placeholder: |
+        - [ ] ...
+    validations:
+      required: true
+  - type: textarea
+    id: riscos
+    attributes:
+      label: Riscos e plano de reversão
+      description: O que pode quebrar e como desfazer.
+    validations:
+      required: false

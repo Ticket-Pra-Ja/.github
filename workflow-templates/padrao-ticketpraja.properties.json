@@ -1,0 +1,6 @@
+{
+  "name": "Padrão Ticket Pra Já",
+  "description": "Valida branch, título e vínculo com issue dos PRs e move os cards do board de desenvolvimento.",
+  "iconName": "octicon checklist",
+  "categories": ["Automation"]
+}
