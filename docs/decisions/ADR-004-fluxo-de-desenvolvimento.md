@@ -6,7 +6,7 @@
 
 ## Contexto
 
-O desenvolvimento hoje não tem padrão: branches pessoais (`juan_dev`, `wagner_dev`), tarefas espalhadas em projetos antigos, status atualizado manualmente e sem vínculo garantido entre tarefa, código e entrega. A empresa quer que agentes de IA (Cursor) escrevam a maior parte do código, com o desenvolvedor no papel de revisor. A mudança não pode afetar as entregas em andamento.
+O desenvolvimento hoje não tem padrão: branches pessoais (`juan_dev`, `wagner_dev`), tarefas espalhadas em projetos antigos, status atualizado manualmente e sem vínculo garantido entre tarefa, código e entrega. A empresa quer que agentes de IA (Claude Code e Cursor) escrevam a maior parte do código, com o desenvolvedor no papel de revisor. A mudança não pode afetar as entregas em andamento.
 
 ## Decisão
 
@@ -16,7 +16,7 @@ O desenvolvimento hoje não tem padrão: branches pessoais (`juan_dev`, `wagner_
 4. **Conventional Commits** em títulos de PR e commits, com descrição em português (ADR-003).
 5. **Status do board é automático** a partir de eventos do GitHub, via workflow reutilizável e GitHub App.
 6. **Padrão verificado por máquina**: workflow `padrao-pr.yml` como check obrigatório nos repositórios adotantes.
-7. **Agente orientado por regra versionada** (`.cursor/rules/fluxo-ticketpraja.mdc`): só trabalha a partir de issue e só commita após aprovação do desenvolvedor.
+7. **Agente orientado por regra versionada** (`AGENTS.md`, lido pelo Cursor diretamente e pelo Claude Code via `CLAUDE.md`): só trabalha a partir de issue e só commita após aprovação do desenvolvedor.
 8. **Pendências com o PO por label**: `needs-owner` move o card para Bloqueado e avisa o Rafael; só ele remove o label, e a remoção devolve a tarefa ao responsável. Impedimentos técnicos usam `blocked`. Mesmo padrão adotado na Ideavelo.
 9. **Merges em dois níveis**: em `development`, o próprio desenvolvedor mescla o seu PR com a validação verde, sem revisão de outra pessoa, adequado ao tamanho da equipe; em produção (`main`/`master`, inclusive hotfix), o PR é obrigatório, sem exigência de aprovação, e só o PO mescla. Garantido pelos rulesets da organização `protege-development` e `producao-somente-po`; os limites estão no documento do fluxo. O repositório `.github` segue a mesma regra de produção.
 10. **Adoção gradual por repositório**, começando por um piloto. Nada é ativado de forma global até o piloto ser validado.

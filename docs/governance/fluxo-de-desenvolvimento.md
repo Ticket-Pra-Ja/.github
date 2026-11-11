@@ -9,9 +9,9 @@ Como uma tarefa sai da ideia e chega em produção na Ticket Pra Já. Decisão r
 | Papel | Quem | Responsabilidade |
 |---|---|---|
 | PO | Rafael | Prioriza o Backlog, responde pendências `needs-owner` e é o único que mescla em produção (releases e hotfixes) |
-| Desenvolvedor | Juan, Wagner | Escolhe tarefa em **Pronto**, conduz o agente no Cursor, revisa o código gerado, mescla o próprio PR em `development` quando a validação passar, testa em homologação, abre o PR de release |
+| Desenvolvedor | Juan, Wagner | Escolhe tarefa em **Pronto**, conduz o agente (Claude Code no VS Code ou Cursor), revisa o código gerado, mescla o próprio PR em `development` quando a validação passar, testa em homologação, abre o PR de release |
 | Projetos | Marcos | Acompanha o board (somente leitura) |
-| Agente de IA | Cursor | Escreve o código a partir da issue, seguindo `.cursor/rules/fluxo-ticketpraja.mdc` |
+| Agente de IA | Claude Code (VS Code) ou Cursor | Escreve o código a partir da issue, seguindo o `AGENTS.md` do repositório |
 
 ## Board
 
@@ -87,7 +87,7 @@ fix: corrige arredondamento do NFC-e
 ## Passo a passo do desenvolvedor
 
 1. No board, escolha um card em **Pronto**.
-2. No Cursor, peça ao agente: *"Implemente a issue #123"*.
+2. No Claude Code ou no Cursor, peça ao agente: *"Implemente a issue #123"*.
 3. O agente lê a issue, se atribui a ela, cria a branch e implementa.
 4. O agente mostra o resumo do que mudou. **Revise o diff.** Peça ajustes até ficar bom.
 5. Autorize o commit. O agente faz commit e abre o PR para `development`.
@@ -118,7 +118,8 @@ O agente de IA nunca mescla nem aprova nada: quem mescla em `development` é o d
 | 1 aprovação + sem push direto na branch padrão | Ruleset `protege-branch-principal` | Sim, nos repositórios ainda não adotados |
 | PR obrigatório e validação verde em `development` | Ruleset `protege-development` | Sim, nos repositórios em piloto |
 | Merge em produção só pelo Rafael | Ruleset `producao-somente-po` | Sim, nos repositórios em piloto |
-| Regras para o agente | `.cursor/rules/fluxo-ticketpraja.mdc` | Orienta o agente no Cursor |
+| Regras para o agente | `AGENTS.md` (o Claude Code lê pelo `CLAUDE.md`) | Orienta os dois agentes |
+| Merge, aprovação e push em branch protegida pelo agente | `.claude/settings.json` | Bloqueia no Claude Code; no Cursor vale só a instrução |
 
 ## Adoção
 
@@ -128,7 +129,9 @@ A adoção é por repositório, sem afetar os demais:
 2. Copiar para o repositório:
    - `modelos/ISSUE_TEMPLATE/*` → `.github/ISSUE_TEMPLATE/`
    - `modelos/PULL_REQUEST_TEMPLATE.md` → `.github/PULL_REQUEST_TEMPLATE.md`
-   - `modelos/cursor/rules/fluxo-ticketpraja.mdc` → `.cursor/rules/`
+   - `modelos/AGENTS.md` → `AGENTS.md` (raiz)
+   - `modelos/CLAUDE.md` → `CLAUDE.md` (raiz)
+   - `modelos/claude/settings.json` → `.claude/settings.json`
    - `workflow-templates/padrao-ticketpraja.yml` → `.github/workflows/`
 3. Criar os labels `needs-owner` ("Aguardando decisão do PO", vermelho) e `blocked` ("Parada por impedimento técnico ou externo", laranja).
 4. Nas regras da organização (Settings → Rulesets), incluir o repositório em:
@@ -148,7 +151,7 @@ A adoção é por repositório, sem afetar os demais:
 
 - "Só o Rafael mescla em produção" é garantido pelo papel **owner da organização**, e não pelo usuário dele. Quando houver um segundo owner, ele também poderá mesclar.
 - Em `development` não há segunda pessoa olhando o código antes do merge. O que segura a qualidade é a revisão do próprio desenvolvedor, a validação automática e o teste em homologação. Na produção, o merge do Rafael é o portão.
-- O agente do Cursor usa a credencial do desenvolvedor. A proibição de o agente mesclar vem da regra do Cursor; o GitHub não distingue o agente do desenvolvedor. Em produção, o que impede um merge sem autorização é a regra `producao-somente-po`.
+- Os agentes usam a credencial do desenvolvedor, e o GitHub não distingue o agente do desenvolvedor. No Claude Code, o `.claude/settings.json` bloqueia merge, aprovação e push em branch protegida; no Cursor, a proibição vem só da instrução no `AGENTS.md`. Os bloqueios do Claude Code são uma proteção a mais, não uma garantia: um comando escrito de outra forma pode escapar deles. Em produção, o que impede um merge sem autorização é a regra `producao-somente-po`.
 - Agentes que usam a conta do Rafael (Claude, ChatGPT) conseguem mesclar em produção como ele. Por isso assinam tudo o que escrevem (regra 10 do `AGENTS.md`).
 - As regras ficam na organização, e só owners da organização podem alterá-las. Os desenvolvedores têm acesso de escrita, não de administrador.
 
