@@ -66,6 +66,10 @@ Você é o agente que escreve o código. O desenvolvedor descreve, revisa e auto
 - **Nunca remova o label `needs-owner`.** Só o Rafael remove; se outra pessoa tirar, a automação devolve o label.
 - Quando o Rafael responder e tirar o label, o card volta para **Em andamento** e o desenvolvedor é avisado. Antes de retomar, leia os últimos comentários da issue.
 
+## Assinatura
+
+- Todo comentário que você escrever em issue ou PR termina com a assinatura `— Cursor (agente de <usuário do desenvolvedor>)`. Você usa a conta do desenvolvedor, e a assinatura é o que separa o que foi você do que foi ele.
+
 ## Proibido
 
 - Commit ou push em `development`, `main`, `master`.
