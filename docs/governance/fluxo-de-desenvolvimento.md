@@ -91,7 +91,7 @@ fix: corrige arredondamento do NFC-e
 3. O agente lê a issue, se atribui a ela, cria a branch e implementa.
 4. O agente mostra o resumo do que mudou. **Revise o diff.** Peça ajustes até ficar bom.
 5. Autorize o commit. O agente faz commit e abre o PR para `development`.
-6. A validação automática confere branch, título e vínculo com a issue. Se falhar, peça ao agente para corrigir.
+6. A validação automática confere branch, título e vínculo com a issue, e o build compila, roda o lint e os testes. Se algo falhar, peça ao agente para corrigir.
 7. Com a validação verde, o próprio desenvolvedor faz o merge em `development`. Não há revisão de outra pessoa nesta etapa: a revisão é a do desenvolvedor sobre o código gerado (passo 4), e a homologação é o teste. O card vai para **Homologação**.
 8. Teste os critérios de aceite no ambiente de homologação.
 9. Na release, um desenvolvedor (ou o Rafael) abre o PR `development → main/master` listando o que vai para produção. **Só o Rafael faz o merge.** Use merge comum, não squash, para a `development` e a branch padrão continuarem com o mesmo histórico. No merge, os cards vão para **Concluído** e as issues são fechadas.
@@ -102,7 +102,7 @@ Depois de um `hotfix/`, leve a correção de volta para a `development`: crie um
 
 | Destino | Quem aprova | Quem mescla | Como o GitHub garante |
 |---|---|---|---|
-| `development` (homologação) | Não exige aprovação | O próprio desenvolvedor, com a validação verde | Ruleset `protege-development`: PR obrigatório e check **Validar padrão do PR**; sem push direto |
+| `development` (homologação) | Não exige aprovação | O próprio desenvolvedor, com a validação verde | Ruleset `protege-development`: PR obrigatório e checks **Validar padrão do PR** e **Build e testes**; sem push direto |
 | `main`/`master` (produção), inclusive `hotfix/` | Não exige aprovação | **Somente o Rafael** | Ruleset `producao-somente-po`: PR obrigatório e só o owner da organização atualiza a branch, e apenas por PR |
 
 Nos repositórios ainda não adotados continua valendo a regra antiga `protege-branch-principal` (PR + 1 aprovação na branch padrão).
@@ -114,6 +114,7 @@ O agente de IA nunca mescla nem aprova nada: quem mescla em `development` é o d
 | Item | Onde | Bloqueia o merge? |
 |---|---|---|
 | Padrão de branch, título e `Closes #N` | `padrao-pr.yml` | Sim, nos repositórios em piloto |
+| Build, lint e testes (`build / Build e testes`) | `build-dotnet.yml` ou `build-node.yml` | Sim, nos repositórios em piloto |
 | Movimento dos cards | `sincroniza-board.yml` | Nunca |
 | 1 aprovação + sem push direto na branch padrão | Ruleset `protege-branch-principal` | Sim, nos repositórios ainda não adotados |
 | PR obrigatório e validação verde em `development` | Ruleset `protege-development` | Sim, nos repositórios em piloto |
@@ -133,9 +134,10 @@ A adoção é por repositório, sem afetar os demais:
    - `modelos/CLAUDE.md` → `CLAUDE.md` (raiz)
    - `modelos/claude/settings.json` → `.claude/settings.json`
    - `workflow-templates/padrao-ticketpraja.yml` → `.github/workflows/`
+   - `modelos/workflows/build-dotnet.yml` ou `modelos/workflows/build-node.yml` → `.github/workflows/build.yml` (ajustando o caminho do projeto no .NET)
 3. Criar os labels `needs-owner` ("Aguardando decisão do PO", vermelho) e `blocked` ("Parada por impedimento técnico ou externo", laranja).
 4. Nas regras da organização (Settings → Rulesets), incluir o repositório em:
-   - `protege-development` (branch `development`: PR sem aprovação mínima, check **Validar padrão do PR**, sem exclusão nem force push, sem exceções);
+   - `protege-development` (branch `development`: PR sem aprovação mínima, checks **Validar padrão do PR** e **Build e testes**, sem exclusão nem force push, sem exceções);
    - `producao-somente-po` (branch padrão: PR sem aprovação mínima e **Restrict updates**, com exceção apenas para **Organization admin** no modo **For pull requests only**);
    - a lista de exclusão de `protege-branch-principal`.
 5. Levar os arquivos do passo 2 para a `development` com uma issue e um PR `chore/N-sincroniza-development`, que já serve de teste do fluxo.

@@ -1,0 +1,53 @@
+# Compila e testa um projeto .NET. Reutilizável: os repositórios chamam com
+#   uses: Ticket-Pra-Ja/.github/.github/workflows/build-dotnet.yml@main
+# O check aparece como "build / Build e testes" e é obrigatório na development.
+name: Build .NET
+
+on:
+  workflow_call:
+    inputs:
+      projeto:
+        description: Caminho do .sln ou .csproj a compilar (vazio = raiz do repositório)
+        type: string
+        default: ''
+      dotnet-version:
+        description: Versão do SDK do .NET
+        type: string
+        default: '10.0.x'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build e testes
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DOTNET_NOLOGO: 'true'
+      DOTNET_CLI_TELEMETRY_OPTOUT: 'true'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ inputs.dotnet-version }}
+
+      - name: Restaurar pacotes
+        run: dotnet restore ${{ inputs.projeto }}
+
+      - name: Compilar
+        run: dotnet build ${{ inputs.projeto }} --no-restore -c Release
+
+      - name: Testes
+        shell: bash
+        run: |
+          shopt -s globstar nullglob
+          testes=(**/*[Tt]est*.csproj)
+          if [ ${#testes[@]} -eq 0 ]; then
+            echo "::notice::Nenhum projeto de teste encontrado; só a compilação foi verificada."
+            exit 0
+          fi
+          for p in "${testes[@]}"; do
+            dotnet test "$p" -c Release
+          done

@@ -1,0 +1,47 @@
+# Instala, verifica e compila um projeto Node (Next.js). Reutilizável: os repositórios chamam com
+#   uses: Ticket-Pra-Ja/.github/.github/workflows/build-node.yml@main
+# O check aparece como "build / Build e testes" e é obrigatório na development.
+name: Build Node
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        description: Versão do Node.js
+        type: string
+        default: '22'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build e testes
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      NEXT_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+
+      - name: Instalar dependências
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            echo "::warning::Sem package-lock.json: as versões das dependências podem mudar entre builds."
+            npm install --no-audit --no-fund
+          fi
+
+      - name: Lint
+        run: npm run lint --if-present
+
+      - name: Testes
+        run: npm test --if-present
+
+      - name: Compilar
+        run: npm run build
