@@ -93,9 +93,10 @@ fix: corrige arredondamento do NFC-e
 4. O agente mostra o resumo do que mudou. **Revise o diff.** Peça ajustes até ficar bom.
 5. Autorize o commit. O agente faz commit e abre o PR para `development`.
 6. A validação automática confere branch, título e vínculo com a issue, e o build compila, roda o lint e os testes. Se algo falhar, peça ao agente para corrigir.
-7. Com a validação verde, o próprio desenvolvedor faz o merge em `development`. Não há revisão de outra pessoa nesta etapa: a revisão é a do desenvolvedor sobre o código gerado (passo 4), e a homologação é o teste. O card vai para **Homologação**.
-8. Teste os critérios de aceite no ambiente de homologação. Com tudo certo, o Rafael move o card para **Aprovado**.
-9. Na release, um desenvolvedor (ou o Rafael) abre o PR `development → main/master` listando o que vai para produção. O check **Portão de release** fica vermelho enquanto houver card do repositório em **Homologação** (testado e ainda não aprovado); depois de aprovar, rode o check de novo. **Só o Rafael faz o merge.** Use merge comum, não squash, para a `development` e a branch padrão continuarem com o mesmo histórico. No merge, os cards em **Aprovado** vão para **Concluído** e as issues são fechadas. Os que ainda estavam em **Homologação** também vão (o código deles já estava na `development`), com um comentário avisando que foram publicados sem aprovação.
+7. O PR precisa de revisão: o Codex revisa automaticamente. Se o Codex estiver fora do ar ou sem cota, o Rafael revisa e coloca o label `revisao-manual` (só ele pode; commits novos removem o label).
+8. Com a validação e a revisão verdes, o próprio desenvolvedor faz o merge em `development`. Não há revisão de outra pessoa nesta etapa: a revisão é a do desenvolvedor sobre o código gerado (passo 4), a revisão automática ou manual (passo 7), e a homologação é o teste. O card vai para **Homologação**.
+9. Teste os critérios de aceite no ambiente de homologação. Com tudo certo, o Rafael move o card para **Aprovado**.
+10. Na release, um desenvolvedor (ou o Rafael) abre o PR `development → main/master` listando o que vai para produção. O check **Portão de release** fica vermelho enquanto houver card do repositório em **Homologação** (testado e ainda não aprovado); depois de aprovar, rode o check de novo. **Só o Rafael faz o merge.** Use merge comum, não squash, para a `development` e a branch padrão continuarem com o mesmo histórico. No merge, os cards em **Aprovado** vão para **Concluído** e as issues são fechadas. Os que ainda estavam em **Homologação** também vão (o código deles já estava na `development`), com um comentário avisando que foram publicados sem aprovação.
 
 Depois de um `hotfix/`, leve a correção de volta para a `development`: crie uma issue, uma branch `chore/N-sincroniza-development` a partir da branch padrão e abra o PR para a `development`.
 
@@ -103,7 +104,7 @@ Depois de um `hotfix/`, leve a correção de volta para a `development`: crie um
 
 | Destino | Quem aprova | Quem mescla | Como o GitHub garante |
 |---|---|---|---|
-| `development` (homologação) | Não exige aprovação | O próprio desenvolvedor, com a validação verde | Ruleset `protege-development`: PR obrigatório e checks **Validar padrão do PR** e **Build e testes**; sem push direto |
+| `development` (homologação) | Não exige aprovação | O próprio desenvolvedor, com a validação verde | Ruleset `protege-development`: PR obrigatório e checks **Validar padrão do PR**, **Build e testes** e **Revisão de código**; sem push direto |
 | `main`/`master` (produção), inclusive `hotfix/` | Não exige aprovação | **Somente o Rafael** | Ruleset `producao-somente-po`: PR obrigatório e só o owner da organização atualiza a branch, e apenas por PR |
 
 Nos repositórios ainda não adotados continua valendo a regra antiga `protege-branch-principal` (PR + 1 aprovação na branch padrão).
@@ -116,6 +117,7 @@ O agente de IA nunca mescla nem aprova nada: quem mescla em `development` é o d
 |---|---|---|
 | Padrão de branch, título e `Closes #N` | `padrao-pr.yml` | Sim, nos repositórios em piloto |
 | Build, lint e testes (`build / Build e testes`) | `build-dotnet.yml` ou `build-node.yml` | Sim, nos repositórios em piloto |
+| Revisão do PR (`revisao / Revisão de código`): Codex no último commit, ou label `revisao-manual` colocado pelo Rafael | `revisao-codigo.yml` + `scripts/revisao-codigo.js` | Sim, nos repositórios em piloto |
 | Movimento dos cards | `sincroniza-board.yml` | Nunca |
 | Card ainda em Homologação no PR de release (`board / Portão de release`) | `sincroniza-board.yml` + `scripts/portao-release.js` | Avisa em vermelho; o Rafael pode mesclar mesmo assim |
 | 1 aprovação + sem push direto na branch padrão | Ruleset `protege-branch-principal` | Sim, nos repositórios ainda não adotados |
@@ -137,9 +139,10 @@ A adoção é por repositório, sem afetar os demais:
    - `modelos/claude/settings.json` → `.claude/settings.json`
    - `workflow-templates/padrao-ticketpraja.yml` → `.github/workflows/`
    - `modelos/workflows/build-dotnet.yml` ou `modelos/workflows/build-node.yml` → `.github/workflows/build.yml` (ajustando o caminho do projeto no .NET)
-3. Criar os labels `needs-owner` ("Aguardando decisão do PO", vermelho) e `blocked` ("Parada por impedimento técnico ou externo", laranja).
+   - `modelos/workflows/revisao.yml` → `.github/workflows/revisao.yml`
+3. Criar os labels `needs-owner` ("Aguardando decisão do PO", vermelho), `blocked` ("Parada por impedimento técnico ou externo", laranja) e `revisao-manual` ("Revisado manualmente pelo PO", verde).
 4. Nas regras da organização (Settings → Rulesets), incluir o repositório em:
-   - `protege-development` (branch `development`: PR sem aprovação mínima, checks **Validar padrão do PR** e **Build e testes**, sem exclusão nem force push, sem exceções);
+   - `protege-development` (branch `development`: PR sem aprovação mínima, checks **Validar padrão do PR**, **Build e testes** e **Revisão de código**, sem exclusão nem force push, sem exceções);
    - `producao-somente-po` (branch padrão: PR sem aprovação mínima e **Restrict updates**, com exceção apenas para **Organization admin** no modo **For pull requests only**);
    - a lista de exclusão de `protege-branch-principal`.
 5. Levar os arquivos do passo 2 para a `development` com uma issue e um PR `chore/N-sincroniza-development`, que já serve de teste do fluxo.
