@@ -1,0 +1,45 @@
+# Check "Revisão de código". Reutilizável: os repositórios chamam com
+#   uses: Ticket-Pra-Ja/.github/.github/workflows/revisao-codigo.yml@main
+# Passa com revisão do Codex no último commit ou com o label "revisao-manual" colocado pelo PO.
+# Lógica em scripts/revisao-codigo.js.
+name: Revisão de código
+
+on:
+  workflow_call:
+    secrets:
+      TPJ_BOARD_APP_ID:
+        required: true
+      TPJ_BOARD_APP_KEY:
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  revisao:
+    name: Revisão de código
+    runs-on: ubuntu-latest
+    steps:
+      - name: Gerar token do GitHub App
+        id: token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.TPJ_BOARD_APP_ID }}
+          private-key: ${{ secrets.TPJ_BOARD_APP_KEY }}
+          owner: Ticket-Pra-Ja
+
+      - name: Baixar script
+        uses: actions/checkout@v4
+        with:
+          repository: Ticket-Pra-Ja/.github
+          ref: main
+          path: .tpj
+          sparse-checkout: scripts
+
+      - name: Conferir revisão
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ steps.token.outputs.token }}
+          script: |
+            const run = require(`${process.env.GITHUB_WORKSPACE}/.tpj/scripts/revisao-codigo.js`);
+            await run({ github, context, core });
