@@ -53,6 +53,13 @@ Fluxo completo: https://github.com/Ticket-Pra-Ja/.github/blob/main/docs/governan
 - Merge em `development` → card vai para **Homologação**.
 - PR de release `development` → branch padrão → card vai para **Concluído** e a issue é fechada.
 
+## Revisão de código
+
+- Todo PR precisa passar no check **Revisão de código** antes do merge.
+- Revisão automática: o Codex revisa o PR. Leia os comentários dele e corrija o que for procedente com novos commits.
+- Contingência (Codex fora do ar ou sem cota): o Rafael revisa o PR e coloca o label `revisao-manual`. Se o check estiver vermelho esperando revisão, avise o desenvolvedor (ou o Rafael) e aguarde.
+- **Nunca coloque nem remova o label `revisao-manual`.** Só o Rafael usa esse label; a automação remove se outra pessoa colocar. Commits novos depois da revisão manual removem o label, e o PR precisa ser revisado de novo.
+
 ## Quando depender do PO ou de algo externo
 
 - Se o trabalho não pode seguir sem uma **decisão, autorização, acesso, gasto ou segredo** que só o PO (Rafael) pode dar:
@@ -77,3 +84,4 @@ Fluxo completo: https://github.com/Ticket-Pra-Ja/.github/blob/main/docs/governan
 - Apagar ou renomear branch que não seja a sua.
 - Alterar workflows em `.github/workflows` sem issue específica para isso.
 - Rodar comandos contra banco ou serviço de produção.
+- Colocar ou remover o label `revisao-manual`.

@@ -1,0 +1,16 @@
+# Revisão de código em todo PR: Codex (automática) ou label "revisao-manual" do PO (contingência).
+name: Revisão de código
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review, labeled, unlabeled]
+  pull_request_review:
+    types: [submitted]
+
+permissions:
+  contents: read
+
+jobs:
+  revisao:
+    uses: Ticket-Pra-Ja/.github/.github/workflows/revisao-codigo.yml@main
+    secrets: inherit
