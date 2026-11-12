@@ -21,7 +21,7 @@ Um único board para todos os repositórios: **[Ticket Pra Já — Desenvolvimen
 |---|---|---|
 | Backlog | Ideia registrada, ainda não refinada | Automático ao criar a issue |
 | Pronto | Refinada, com critérios de aceite; pode ser puxada | Rafael |
-| Em andamento | Alguém assumiu e está desenvolvendo | Automático ao atribuir a issue |
+| Em andamento | Alguém assumiu e está desenvolvendo, ou a revisão pediu ajustes | Automático ao atribuir a issue, ao pedir ajustes no PR ou ao fechar o PR sem merge |
 | Em revisão | PR aberto, aguardando a validação e o merge | Automático ao abrir o PR |
 | Homologação | Mesclado em `development`, em teste no ambiente de homologação | Automático no merge |
 | Aprovado | Testado em homologação e liberado para a próxima release | Rafael, depois de testar |
@@ -94,6 +94,8 @@ fix: corrige arredondamento do NFC-e
 5. Autorize o commit. O agente faz commit e abre o PR para `development`.
 6. A validação automática confere branch, título e vínculo com a issue, e o build compila, roda o lint e os testes. Se algo falhar, peça ao agente para corrigir.
 7. O PR precisa de revisão: o Codex revisa automaticamente. Se o Codex estiver fora do ar ou sem cota, o Rafael revisa e coloca o label `revisao-manual` (só ele pode; commits novos removem o label).
+   - Se a revisão pedir ajustes (**Review changes → Request changes**), o card volta para **Em andamento** e o responsável é avisado na issue. Os novos commits devolvem o card para **Em revisão**.
+   - Se o PR for fechado sem merge, o card volta para **Em andamento** (ou **Pronto**, sem responsável), com aviso na issue.
 8. Com a validação e a revisão verdes, o próprio desenvolvedor faz o merge em `development`. Não há revisão de outra pessoa nesta etapa: a revisão é a do desenvolvedor sobre o código gerado (passo 4), a revisão automática ou manual (passo 7), e a homologação é o teste. O card vai para **Homologação**.
 9. Teste os critérios de aceite no ambiente de homologação. Com tudo certo, o Rafael move o card para **Aprovado**.
 10. Na release, um desenvolvedor (ou o Rafael) abre o PR `development → main/master` listando o que vai para produção. O check **Portão de release** fica vermelho enquanto houver card do repositório em **Homologação** (testado e ainda não aprovado); depois de aprovar, rode o check de novo. **Só o Rafael faz o merge.** Use merge comum, não squash, para a `development` e a branch padrão continuarem com o mesmo histórico. No merge, os cards em **Aprovado** vão para **Concluído** e as issues são fechadas. Os que ainda estavam em **Homologação** também vão (o código deles já estava na `development`), com um comentário avisando que foram publicados sem aprovação.
