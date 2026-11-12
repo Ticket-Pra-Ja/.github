@@ -5,7 +5,9 @@
 //   label needs-owner / blocked            -> Bloqueado (needs-owner marca o PO)
 //   PO remove needs-owner / remove blocked -> Em andamento (ou Pronto sem responsável) e avisa o responsável
 //   outra pessoa remove needs-owner        -> label devolvido
-//   PR aberto/reaberto/pronto p/ revisão   -> Em revisão (issues citadas com "Closes #N")
+//   PR aberto/reaberto/pronto/novo commit  -> Em revisão (issues citadas com "Closes #N")
+//   revisão pedindo ajustes                -> Em andamento + aviso ao responsável
+//   PR fechado sem merge                   -> Em andamento (ou Pronto) + aviso ao responsável
 //   PR mesclado em development             -> Homologação
 //   card movido para Aprovado              -> manual, pelo PO, depois de testar no sandbox
 //   PR de release development -> padrão    -> Concluído + fecha as issues em Aprovado/Homologação do repositório
@@ -118,14 +120,44 @@ module.exports = async ({ github, context, core }) => {
     return;
   }
 
+  // Devolve a tarefa ao responsável: card para Em andamento (ou Pronto sem responsável) e aviso na issue.
+  const devolverIssue = async (numero, mensagem) => {
+    const { data: issue } = await github.rest.issues.get({ owner, repo, issue_number: numero });
+    if (issue.pull_request || issue.state !== 'open') return;
+    const responsaveis = (issue.assignees || []).map(a => a.login);
+    await moverIssue(numero, responsaveis.length ? 'Em andamento' : 'Pronto');
+    const quem = responsaveis.length ? responsaveis.map(l => '@' + l).join(' ') + ' ' : '';
+    await github.rest.issues.createComment({ owner, repo, issue_number: numero, body: quem + mensagem });
+  };
+
+  // Revisão pedindo ajustes: a tarefa volta para o responsável.
+  if (ev === 'pull_request_review' && acao === 'submitted' && context.payload.review?.state === 'changes_requested') {
+    const pr = context.payload.pull_request;
+    const revisor = context.payload.review.user?.login || 'o revisor';
+    for (const n of issuesDoPR(pr)) {
+      await devolverIssue(n, `@${revisor} pediu ajustes no PR #${pr.number}. Leia a revisão, corrija com novos commits na mesma branch e o card volta para Em revisão.`);
+    }
+    return;
+  }
+
   if (ev === 'pull_request' || ev === 'pull_request_target') {
     const pr = context.payload.pull_request;
     const base = pr.base.ref;
     const head = pr.head.ref;
 
     // Só PRs abertos: editar a descrição de um PR já mesclado não pode devolver as issues para Em revisão.
-    if (['opened', 'reopened', 'ready_for_review', 'edited'].includes(acao) && pr.state === 'open' && !pr.draft) {
+    // synchronize: commits novos (por exemplo, depois de um pedido de ajustes) devolvem o card para Em revisão.
+    if (['opened', 'reopened', 'ready_for_review', 'edited', 'synchronize'].includes(acao) && pr.state === 'open' && !pr.draft) {
       for (const n of issuesDoPR(pr)) await moverIssue(n, 'Em revisão');
+      return;
+    }
+
+    // PR fechado sem merge: a tarefa volta para o responsável.
+    if (acao === 'closed' && !pr.merged) {
+      const quem = context.payload.sender?.login || 'alguém';
+      for (const n of issuesDoPR(pr)) {
+        await devolverIssue(n, `O PR #${pr.number} foi fechado sem merge por @${quem}. Leia o motivo no PR antes de seguir com a tarefa.`);
+      }
       return;
     }
 
