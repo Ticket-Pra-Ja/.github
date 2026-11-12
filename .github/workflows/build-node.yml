@@ -28,9 +28,12 @@ jobs:
         with:
           node-version: ${{ inputs.node-version }}
 
+      # Mesmo gerenciador que a Vercel usa: yarn quando há yarn.lock, npm quando há package-lock.json.
       - name: Instalar dependências
         run: |
-          if [ -f package-lock.json ]; then
+          if [ -f yarn.lock ]; then
+            yarn install --frozen-lockfile --network-timeout 300000
+          elif [ -f package-lock.json ]; then
             npm ci
           else
             echo "::warning::Sem package-lock.json: as versões das dependências podem mudar entre builds."
