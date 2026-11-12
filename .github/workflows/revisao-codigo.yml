@@ -43,3 +43,33 @@ jobs:
           script: |
             const run = require(`${process.env.GITHUB_WORKSPACE}/.tpj/scripts/revisao-codigo.js`);
             await run({ github, context, core });
+
+  # Revisão pedindo ajustes devolve o card ao responsável (lógica em scripts/sincroniza-board.js).
+  board:
+    name: Sincronizar board
+    if: github.event_name == 'pull_request_review'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Gerar token do GitHub App
+        id: token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.TPJ_BOARD_APP_ID }}
+          private-key: ${{ secrets.TPJ_BOARD_APP_KEY }}
+          owner: Ticket-Pra-Ja
+
+      - name: Baixar script
+        uses: actions/checkout@v4
+        with:
+          repository: Ticket-Pra-Ja/.github
+          ref: main
+          path: .tpj
+          sparse-checkout: scripts
+
+      - name: Atualizar status
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ steps.token.outputs.token }}
+          script: |
+            const run = require(`${process.env.GITHUB_WORKSPACE}/.tpj/scripts/sincroniza-board.js`);
+            await run({ github, context, core });
