@@ -157,6 +157,8 @@ A adoção é por repositório, sem afetar os demais:
 | `api.v2.ticketpraja` | Adotado em 11/11/2026 (issue #1) |
 | `portal.ticketpraja` | Adotado em 12/11/2026 (issues #23 e #25). Deploy pelo GitHub Actions: `development` → portal-sandbox; `main` → store e store2. Projeto "portal" da Vercel fora de uso |
 | `API.TICKETPRAJA` | Adotado em 13/11/2026 (issue #11). Branch padrão renomeada para `main`. Publicação continua manual (Visual Studio → IIS, sandbox e depois produção); `appsettings.json` e `nfceConfig.ini` ficam só nos servidores |
+| `admin.ticketpraja` | Adotado em 13/11/2026 (issue #54). Deploy pelo GitHub Actions: `development` → admin-sandbox; `main` → admin e admin2 |
+| `INT.TICKETPRAJA.CONTAAZUL`, `PRINTER.TICKETPRAJA` | Fora de uso; seguem a regra antiga `protege-branch-principal` até voltarem a ter desenvolvimento |
 
 ## Limites do que o GitHub garante
 
