@@ -53,7 +53,7 @@ Toda tarefa nasce como issue, por formulário:
 - **Bug** (`fix`) — comportamento errado.
 - **Tarefa técnica** (`chore`) — refatoração, infraestrutura, dependências, segurança.
 
-Todos os formulários exigem **critérios de aceite**. É a partir deles que o agente gera o código e que a homologação é feita.
+O PO escreve as issues com ajuda da IA, seguindo o guia [Como escrever uma issue](como-escrever-issue.md). Todos os formulários exigem **critérios de aceite**. É a partir deles que o agente gera o código e que a homologação é feita.
 
 ## Branches
 
@@ -155,6 +155,8 @@ A adoção é por repositório, sem afetar os demais:
 | `.github` | Exceção: só o Rafael mescla na `main` (`producao-somente-po`); não usa `development` |
 | `marketplace.ticketpraja` | Piloto adotado em 11/11/2026; fluxo testado de ponta a ponta (issue #2: Em andamento → Em revisão → Homologação → Concluído) |
 | `api.v2.ticketpraja` | Adotado em 11/11/2026 (issue #1) |
+| `portal.ticketpraja` | Adotado em 12/11/2026 (issues #23 e #25). Deploy pelo GitHub Actions: `development` → portal-sandbox; `main` → store e store2. Projeto "portal" da Vercel fora de uso |
+| `API.TICKETPRAJA` | Adotado em 13/11/2026 (issue #11). Branch padrão renomeada para `main`. Publicação continua manual (Visual Studio → IIS, sandbox e depois produção); `appsettings.json` e `nfceConfig.ini` ficam só nos servidores |
 
 ## Limites do que o GitHub garante
 
