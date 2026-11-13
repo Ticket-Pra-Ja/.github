@@ -60,6 +60,12 @@ Fluxo completo: https://github.com/Ticket-Pra-Ja/.github/blob/main/docs/governan
 - Contingência (Codex fora do ar ou sem cota): o Rafael revisa o PR e coloca o label `revisao-manual`. Se o check estiver vermelho esperando revisão, avise o desenvolvedor (ou o Rafael) e aguarde.
 - **Nunca coloque nem remova o label `revisao-manual`.** Só o Rafael usa esse label; a automação remove se outra pessoa colocar. Commits novos depois da revisão manual removem o label, e o PR precisa ser revisado de novo.
 
+## Ao criar ou revisar issues
+
+- Quando o PO pedir ajuda para escrever uma issue, siga o guia: https://github.com/Ticket-Pra-Ja/.github/blob/main/docs/governance/como-escrever-issue.md
+- Analise o código antes de escrever, proponha o caminho com opções e mostre o texto ao PO antes de criar.
+- Dependência de outro sistema (API, admin, banco) vira issue própria no repositório dele, marcada como "Blocked by". Em produção, o back-end sobe antes do front.
+
 ## Quando depender do PO ou de algo externo
 
 - Se o trabalho não pode seguir sem uma **decisão, autorização, acesso, gasto ou segredo** que só o PO (Rafael) pode dar:
