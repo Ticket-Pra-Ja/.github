@@ -17,6 +17,12 @@ permissions:
 jobs:
   sincronizar:
     name: Sincronizar board
+    # Economia de minutos: em issues, só roda quando a issue é atribuída ou quando o label mexido
+    # move card (needs-owner, blocked). Outros labels (bug, enhancement...) não mudam o board.
+    if: >-
+      github.event_name != 'issues' ||
+      github.event.action == 'assigned' ||
+      contains(fromJSON('["needs-owner", "blocked"]'), github.event.label.name)
     runs-on: ubuntu-latest
     steps:
       - name: Verificar credenciais
