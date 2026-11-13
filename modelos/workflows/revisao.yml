@@ -12,5 +12,10 @@ permissions:
 
 jobs:
   revisao:
+    # Economia de minutos: label só importa quando é o revisao-manual; outros labels não mudam a revisão.
+    if: >-
+      github.event_name != 'pull_request' ||
+      (github.event.action != 'labeled' && github.event.action != 'unlabeled') ||
+      github.event.label.name == 'revisao-manual'
     uses: Ticket-Pra-Ja/.github/.github/workflows/revisao-codigo.yml@main
     secrets: inherit
