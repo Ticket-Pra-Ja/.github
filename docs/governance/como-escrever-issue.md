@@ -13,6 +13,15 @@ A issue é o único insumo do agente que vai implementar. Se faltar algo nela, o
 5. **Escreva a issue no formato abaixo** e mostre ao PO antes de criar.
 6. **Crie só depois do "ok" do PO**, no repositório onde o código vai mudar, com `gh issue create`. Atribua ao desenvolvedor que o PO indicar. O card vai para **Pronto** quando o PO decidir que pode ser puxada.
 
+## Critérios de aceite viram testes
+
+Cada critério de aceite vira um teste automatizado escrito pelo agente que implementa (regra do `AGENTS.md`). Por isso:
+
+- Escreva cada critério no formato **Dado / quando / então**, com valores concretos: "Dado um domínio com fim de vigência ontem, quando consulto `CodigoExigido`, então a resposta é `true`".
+- Um comportamento por critério. Inclua os casos de erro, cada um com a resposta esperada.
+- Evite critérios que só um humano avalia ("ficar bonito", "ficar rápido"). Se for inevitável, diga como medir.
+- Marque com **(manual)** o critério que depende de equipamento ou serviço externo sem modo de teste (maquininha, impressora, e-mail real). Esse fica na homologação do PO.
+
 ## Formato
 
 ```markdown
@@ -30,11 +39,12 @@ O que já existe e deve ser reaproveitado.
 O que não deve ser feito nesta tarefa.
 
 ## Critérios de aceite
-- [ ] Dado ..., quando ..., então ...   (um por linha, verificável no sandbox)
+- [ ] Dado ..., quando ..., então ...   (um por linha, com valores concretos; vira teste automatizado)
 - [ ] Casos de erro e o comportamento esperado em cada um
+- [ ] (manual) Critério que depende de equipamento ou serviço externo
 
 ## Como testar no sandbox
-Passo a passo que o PO segue em sandbox.ticketpraja.com.br (ou no ambiente do sistema).
+O que o PO confere à mão em sandbox.ticketpraja.com.br (ou no ambiente do sistema): os critérios marcados como (manual) e o que for visual.
 
 ## Dependências
 Nenhuma | Bloqueada por OUTRO-REPO#N (a API sobe em produção antes deste front).
@@ -52,7 +62,8 @@ P (até meio dia) | M (até 2 dias) | G (mais que isso: quebre em issues menores
 ## Checklist antes de criar
 
 - [ ] Uma issue = uma entrega testável. Se tiver "e também", provavelmente são duas.
-- [ ] Critérios de aceite verificáveis por quem não leu o código.
+- [ ] Critérios de aceite no formato Dado / quando / então, com valores concretos, verificáveis por quem não leu o código.
+- [ ] Critérios que não dá para automatizar marcados como (manual).
 - [ ] Dependência de outro sistema registrada como issue própria + "Blocked by".
 - [ ] Área sensível sinalizada (o PR vai exigir revisão atenta).
 - [ ] Nenhum segredo, senha, token ou dado pessoal no texto.
