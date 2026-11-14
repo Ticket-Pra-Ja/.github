@@ -27,7 +27,9 @@ Fluxo completo: https://github.com/Ticket-Pra-Ja/.github/blob/main/docs/governan
 
 - Faça a menor mudança que atende os critérios de aceite. Nada fora do escopo da issue.
 - Siga o estilo de código já existente no repositório.
-- Escreva ou ajuste testes quando o repositório tiver testes, e rode o build e os testes antes de mostrar o resultado.
+- **Um teste automatizado por critério de aceite.** Para cada critério da issue, escreva um teste que falha sem a sua mudança e passa com ela. Rode o build e os testes antes de mostrar o resultado.
+  - Se o repositório ainda não tem projeto de testes, crie o mínimo necessário no mesmo PR (xUnit no .NET; o runner de testes do projeto no Node), sem reorganizar o resto.
+  - Se um critério não puder ser testado automaticamente (maquininha, impressora, e-mail real, serviço externo sem modo de teste), diga isso no PR e explique como testar à mão.
 - Nunca grave segredo, senha, token, connection string ou dado pessoal em arquivo versionado. Use variáveis de ambiente e atualize o arquivo de exemplo (`.env.example`, `appsettings.Example.json`) só com os nomes.
 - Não abra nem leia arquivos com segredos reais (`.env`, `appsettings.json` de servidor, `nfceConfig.ini`). Se precisar saber que configuração existe, use o arquivo de exemplo.
 - Áreas sensíveis (pagamento, emissão fiscal, autenticação, LGPD, banco de produção): avise o desenvolvedor explicitamente no resumo.
