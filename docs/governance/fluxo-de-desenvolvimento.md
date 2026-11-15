@@ -102,6 +102,18 @@ fix: corrige arredondamento do NFC-e
 
 Depois de um `hotfix/`, leve a correção de volta para a `development`: crie uma issue, uma branch `chore/N-sincroniza-development` a partir da branch padrão e abra o PR para a `development`.
 
+## Testes
+
+Três camadas, da mais barata para a mais cara. A homologação do Rafael fica só com o que as duas primeiras não cobrem.
+
+| Camada | Onde | Quem escreve | Quando roda |
+|---|---|---|---|
+| Testes do repositório (unidade e integração) | No próprio repositório (xUnit no .NET; runner do projeto no Node) | O agente, **um teste por critério de aceite** da issue (regra do `AGENTS.md`) | Em todo PR, no check **Build e testes**, que bloqueia o merge |
+| Testes de ponta a ponta (Playwright) | `e2e.ticketpraja`, contra o sandbox | O agente, a partir das issues do `e2e.ticketpraja` | Depois de cada deploy no sandbox e toda noite às 23h |
+| Homologação | Sandbox | Rafael | Antes de mover o card para **Aprovado**: critérios marcados como (manual), o que for visual e as áreas sensíveis |
+
+Critério de aceite que não dá para automatizar (maquininha, impressora, e-mail real) é marcado como **(manual)** na issue e justificado na tabela de testes do PR.
+
 ## Quem pode mesclar
 
 | Destino | Quem aprova | Quem mescla | Como o GitHub garante |
