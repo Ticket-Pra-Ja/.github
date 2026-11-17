@@ -3,7 +3,11 @@
 # Passa com revisão do Codex no último commit (review ou comentário-recibo) ou com o label
 # "revisao-manual" colocado pelo PO. Lógica em scripts/revisao-codigo.js.
 # Quando o Codex comenta no PR (issue_comment), reexecuta o check do último commit
-# (scripts/revisao-reexecutar.js); o chamador precisa conceder "actions: write".
+# (scripts/revisao-reexecutar.js); para isso o chamador concede "actions: write".
+#
+# Sem bloco "permissions" de propósito: os jobs herdam as permissões do chamador.
+# Pedir aqui uma permissão que o chamador não concede faz o workflow falhar ao iniciar
+# (startup_failure) em todos os repositórios que ainda usam o revisao.yml antigo.
 name: Revisão de código
 
 on:
@@ -13,9 +17,6 @@ on:
         required: true
       TPJ_BOARD_APP_KEY:
         required: true
-
-permissions:
-  contents: read
 
 jobs:
   revisao:
@@ -52,10 +53,6 @@ jobs:
     name: Reexecutar após revisão do Codex
     if: github.event_name == 'issue_comment'
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      actions: write
-      pull-requests: read
     steps:
       - name: Baixar script
         uses: actions/checkout@v4
