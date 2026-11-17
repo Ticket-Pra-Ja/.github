@@ -6,16 +6,25 @@ on:
     types: [opened, reopened, synchronize, ready_for_review, labeled, unlabeled]
   pull_request_review:
     types: [submitted]
+  # O Codex publica o recibo de revisão como comentário; ele reexecuta o check do último commit.
+  issue_comment:
+    types: [created, edited]
 
 permissions:
   contents: read
+  actions: write
+  pull-requests: read
 
 jobs:
   revisao:
-    # Economia de minutos: label só importa quando é o revisao-manual; outros labels não mudam a revisão.
+    # Economia de minutos: label só importa quando é o revisao-manual; comentário só quando é do Codex num PR.
     if: >-
-      github.event_name != 'pull_request' ||
-      (github.event.action != 'labeled' && github.event.action != 'unlabeled') ||
-      github.event.label.name == 'revisao-manual'
+      (github.event_name == 'issue_comment' &&
+        github.event.issue.pull_request &&
+        github.event.comment.user.login == 'chatgpt-codex-connector[bot]') ||
+      (github.event_name != 'issue_comment' && (
+        github.event_name != 'pull_request' ||
+        (github.event.action != 'labeled' && github.event.action != 'unlabeled') ||
+        github.event.label.name == 'revisao-manual'))
     uses: Ticket-Pra-Ja/.github/.github/workflows/revisao-codigo.yml@main
     secrets: inherit
