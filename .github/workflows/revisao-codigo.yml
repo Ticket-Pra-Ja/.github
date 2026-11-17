@@ -1,7 +1,9 @@
 # Check "Revisão de código". Reutilizável: os repositórios chamam com
 #   uses: Ticket-Pra-Ja/.github/.github/workflows/revisao-codigo.yml@main
-# Passa com revisão do Codex no último commit ou com o label "revisao-manual" colocado pelo PO.
-# Lógica em scripts/revisao-codigo.js.
+# Passa com revisão do Codex no último commit (review ou comentário-recibo) ou com o label
+# "revisao-manual" colocado pelo PO. Lógica em scripts/revisao-codigo.js.
+# Quando o Codex comenta no PR (issue_comment), reexecuta o check do último commit
+# (scripts/revisao-reexecutar.js); o chamador precisa conceder "actions: write".
 name: Revisão de código
 
 on:
@@ -18,6 +20,7 @@ permissions:
 jobs:
   revisao:
     name: Revisão de código
+    if: github.event_name != 'issue_comment'
     runs-on: ubuntu-latest
     steps:
       - name: Gerar token do GitHub App
@@ -42,6 +45,31 @@ jobs:
           github-token: ${{ steps.token.outputs.token }}
           script: |
             const run = require(`${process.env.GITHUB_WORKSPACE}/.tpj/scripts/revisao-codigo.js`);
+            await run({ github, context, core });
+
+  # Comentário do Codex no PR: reexecuta o check do último commit para reconhecer o recibo.
+  reexecutar:
+    name: Reexecutar após revisão do Codex
+    if: github.event_name == 'issue_comment'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write
+      pull-requests: read
+    steps:
+      - name: Baixar script
+        uses: actions/checkout@v4
+        with:
+          repository: Ticket-Pra-Ja/.github
+          ref: main
+          path: .tpj
+          sparse-checkout: scripts
+
+      - name: Reexecutar check
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const run = require(`${process.env.GITHUB_WORKSPACE}/.tpj/scripts/revisao-reexecutar.js`);
             await run({ github, context, core });
 
   # Revisão pedindo ajustes devolve o card ao responsável (lógica em scripts/sincroniza-board.js).
