@@ -8,10 +8,10 @@ Como uma tarefa sai da ideia e chega em produção na Ticket Pra Já. Decisão r
 
 | Papel | Quem | Responsabilidade |
 |---|---|---|
-| PO | Rafael | Prioriza o Backlog, responde pendências `needs-owner` e é o único que mescla em produção (releases e hotfixes) |
-| Desenvolvedor | Juan, Wagner | Escolhe tarefa em **Pronto**, conduz o agente (Claude Code no VS Code ou Cursor), revisa o código gerado, mescla o próprio PR em `development` quando a validação passar, testa em homologação, abre o PR de release |
+| PO | Rafael | Único que cria issues (com o agente de estruturação), prioriza o Backlog, responde pendências `needs-owner`, aprova em homologação e é o único que mescla em produção (releases e hotfixes) |
+| Desenvolvedor | Juan, Wagner | Executa as issues em **Pronto** (não cria issues), conduz o agente (Claude Code no VS Code ou Cursor), revisa o código gerado, mescla o PR em `development` (ou autoriza o agente a mesclar) quando a validação passar, testa em homologação, abre o PR de release |
 | Projetos | Marcos | Acompanha o board (somente leitura) |
-| Agente de IA | Claude Code (VS Code) ou Cursor | Escreve o código a partir da issue, seguindo o `AGENTS.md` do repositório |
+| Agente de IA | Claude Code (VS Code) ou Cursor | Escreve o código a partir da issue, seguindo o `AGENTS.md` do repositório; mescla o próprio PR em `development` com o ok do desenvolvedor; não cria issues, sugere ao PO na issue em andamento |
 
 ## Board
 
@@ -53,7 +53,7 @@ Toda tarefa nasce como issue, por formulário:
 - **Bug** (`fix`) — comportamento errado.
 - **Tarefa técnica** (`chore`) — refatoração, infraestrutura, dependências, segurança.
 
-O PO escreve as issues com ajuda da IA, seguindo o guia [Como escrever uma issue](como-escrever-issue.md). Todos os formulários exigem **critérios de aceite**. É a partir deles que o agente gera o código e que a homologação é feita.
+**Só o PO cria issues**, com ajuda da IA, seguindo o guia [Como escrever uma issue](como-escrever-issue.md). Devs e os agentes deles executam; quando encontram algo fora do escopo (bug, melhoria, dependência), comentam na issue em andamento com `**Sugestão para o PO:**`, e o PO decide se vira issue. Todos os formulários exigem **critérios de aceite**. É a partir deles que o agente gera o código e que a homologação é feita.
 
 ## Branches
 
@@ -96,7 +96,7 @@ fix: corrige arredondamento do NFC-e
 7. O PR precisa de revisão: o Claude revisa automaticamente o último commit (job **Revisão pelo Claude**) e publica no PR um comentário com os apontamentos por prioridade (P0, P1, P2). Corrija o que for procedente com novos commits; cada commit novo é revisado de novo. PR em rascunho só é revisado quando ficar pronto. Se a revisão automática estiver fora do ar, o Rafael revisa e coloca o label `revisao-manual` (só ele pode; commits novos removem o label).
    - Se a revisão pedir ajustes (**Review changes → Request changes**), o card volta para **Em andamento** e o responsável é avisado na issue. Os novos commits devolvem o card para **Em revisão**.
    - Se o PR for fechado sem merge, o card volta para **Em andamento** (ou **Pronto**, sem responsável), com aviso na issue.
-8. Com a validação e a revisão verdes, o próprio desenvolvedor faz o merge em `development`. Não há revisão de outra pessoa nesta etapa: a revisão é a do desenvolvedor sobre o código gerado (passo 4), a revisão automática ou manual (passo 7), e a homologação é o teste. O card vai para **Homologação**.
+8. Com a validação e a revisão verdes, o PR é mesclado em `development`: pelo próprio desenvolvedor, ou pelo agente quando o desenvolvedor disser que pode (o agente comenta no PR o que verificou antes de mesclar). Não há revisão de outra pessoa nesta etapa: a revisão é a do desenvolvedor sobre o código gerado (passo 4), a revisão automática ou manual (passo 7), e a homologação é o teste. O card vai para **Homologação**.
 9. Teste os critérios de aceite no ambiente de homologação. Com tudo certo, o Rafael move o card para **Aprovado**.
 10. Na release, um desenvolvedor (ou o Rafael) abre o PR `development → main/master` listando o que vai para produção. O check **Portão de release** fica vermelho enquanto houver card do repositório em **Homologação** (testado e ainda não aprovado); depois de aprovar, rode o check de novo. **Só o Rafael faz o merge.** Use merge comum, não squash, para a `development` e a branch padrão continuarem com o mesmo histórico. No merge, os cards em **Aprovado** vão para **Concluído** e as issues são fechadas. Os que ainda estavam em **Homologação** também vão (o código deles já estava na `development`), com um comentário avisando que foram publicados sem aprovação.
 
@@ -118,12 +118,12 @@ Critério de aceite que não dá para automatizar (maquininha, impressora, e-mai
 
 | Destino | Quem aprova | Quem mescla | Como o GitHub garante |
 |---|---|---|---|
-| `development` (homologação) | Não exige aprovação | O próprio desenvolvedor, com a validação verde | Ruleset `protege-development`: PR obrigatório e checks **Validar padrão do PR**, **Build e testes** e **Revisão de código**; sem push direto |
+| `development` (homologação) | Não exige aprovação | O desenvolvedor, ou o agente com o ok dele, com a validação verde | Ruleset `protege-development`: PR obrigatório e checks **Validar padrão do PR**, **Build e testes** e **Revisão de código**; sem push direto |
 | `main`/`master` (produção), inclusive `hotfix/` | Não exige aprovação | **Somente o Rafael** | Ruleset `producao-somente-po`: PR obrigatório e só o owner da organização atualiza a branch, e apenas por PR |
 
 Nos repositórios ainda não adotados continua valendo a regra antiga `protege-branch-principal` (PR + 1 aprovação na branch padrão).
 
-O agente de IA nunca mescla nem aprova nada: quem mescla em `development` é o desenvolvedor, depois de revisar o que o agente gerou.
+O agente de IA nunca aprova PR nem mescla na `main`/`master`. Na `development`, mescla o próprio PR quando o desenvolvedor que o conduz disser que pode, com todos os checks obrigatórios verdes, os critérios de aceite atendidos e um comentário no PR resumindo o que verificou. Nos repositórios conduzidos só pelo Claude (exceção no `AGENTS.md` deles), ele mescla na `development` sem esperar um dev.
 
 ## O que é automático e o que bloqueia
 
@@ -139,7 +139,7 @@ O agente de IA nunca mescla nem aprova nada: quem mescla em `development` é o d
 | PR obrigatório e validação verde em `development` | Ruleset `protege-development` | Sim, nos repositórios em piloto |
 | Merge em produção só pelo Rafael | Ruleset `producao-somente-po` | Sim, nos repositórios em piloto |
 | Regras para o agente | `AGENTS.md` (o Claude Code lê pelo `CLAUDE.md`) | Orienta os dois agentes |
-| Merge, aprovação e push em branch protegida pelo agente | `.claude/settings.json` | Bloqueia no Claude Code; no Cursor vale só a instrução |
+| Aprovação de PR e push em branch protegida pelo agente | `.claude/settings.json` | Bloqueia no Claude Code; no Cursor vale só a instrução |
 
 ## Adoção
 
@@ -180,8 +180,9 @@ A adoção é por repositório, sem afetar os demais:
 - "Só o Rafael mescla em produção" é garantido pelo papel **owner da organização**, e não pelo usuário dele. Quando houver um segundo owner, ele também poderá mesclar.
 - Em `development` não há segunda pessoa olhando o código antes do merge. O que segura a qualidade é a revisão do próprio desenvolvedor, a revisão automática pelo Claude, a validação automática e o teste em homologação. Na produção, o merge do Rafael é o portão.
 - A revisão automática usa a assinatura do Claude do Rafael (token de 1 ano no segredo `CLAUDE_CODE_OAUTH_TOKEN`, gerado com `claude setup-token`). Se o token vencer ou o limite do plano acabar, o check fica vermelho e vale a revisão manual até o token ser renovado.
-- Os agentes usam a credencial do desenvolvedor, e o GitHub não distingue o agente do desenvolvedor. No Claude Code, o `.claude/settings.json` bloqueia merge, aprovação e push em branch protegida; no Cursor, a proibição vem só da instrução no `AGENTS.md`. Os bloqueios do Claude Code são uma proteção a mais, não uma garantia: um comando escrito de outra forma pode escapar deles. Em produção, o que impede um merge sem autorização é a regra `producao-somente-po`.
-- Agentes que usam a conta do Rafael conseguem mesclar em produção como ele. Por isso assinam tudo o que escrevem (regra 10 do `AGENTS.md`).
+- "Só o PO cria issues" é regra do `AGENTS.md` e do fluxo. O GitHub não impede quem tem acesso de escrita de abrir issue.
+- Os agentes usam a credencial do desenvolvedor, e o GitHub não distingue o agente do desenvolvedor. No Claude Code, o `.claude/settings.json` bloqueia aprovação de PR e push em branch protegida; no Cursor, a proibição vem só da instrução no `AGENTS.md`. Os bloqueios do Claude Code são uma proteção a mais, não uma garantia: um comando escrito de outra forma pode escapar deles. Em produção, o que impede um merge sem autorização é a regra `producao-somente-po`.
+- Agentes que usam a conta do Rafael conseguem mesclar em produção como ele, porque ele é owner. O que impede é só a instrução do `AGENTS.md`. Por isso assinam tudo o que escrevem (regra 10 do `AGENTS.md`).
 - As regras ficam na organização, e só owners da organização podem alterá-las. Os desenvolvedores têm acesso de escrita, não de administrador.
 
 ## Pré-requisitos

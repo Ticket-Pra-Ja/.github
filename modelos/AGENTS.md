@@ -47,7 +47,11 @@ Fluxo completo: https://github.com/Ticket-Pra-Ja/.github/blob/main/docs/governan
 - Corpo: siga o modelo de PR e mantenha `Closes #<N>` na primeira linha.
 - Comando: `gh pr create --base development --title "<título>" --body-file <arquivo>`
 - O board move o card para **Em revisão**. A validação automática de padrão precisa passar.
-- Não faça merge nem aprove PR. Em `development`, o desenvolvedor mescla depois de conferir a validação; em produção, só o Rafael mescla.
+- Merge na `development`: quem mescla é o desenvolvedor ou você, o agente. Você pode mesclar o próprio PR (merge comum) quando o desenvolvedor que conduz o trabalho disser que pode, e só se:
+  - todos os checks obrigatórios estiverem verdes (padrão do PR, build e **Revisão de código**);
+  - todos os critérios de aceite da issue estiverem atendidos;
+  - houver no PR um comentário seu resumindo o que foi verificado.
+- Nunca aprove PR e nunca mescle na `main`/`master`: em produção, só o Rafael mescla.
 
 ## 6. Depois do PR
 
@@ -62,11 +66,11 @@ Fluxo completo: https://github.com/Ticket-Pra-Ja/.github/blob/main/docs/governan
 - Contingência (revisão automática fora do ar): o Rafael revisa o PR e coloca o label `revisao-manual`. Se o check estiver vermelho esperando revisão, avise o desenvolvedor (ou o Rafael) e aguarde.
 - **Nunca coloque nem remova o label `revisao-manual`.** Só o Rafael usa esse label; a automação remove se outra pessoa colocar. Commits novos depois da revisão manual removem o label, e o PR precisa ser revisado de novo.
 
-## Ao criar ou revisar issues
+## Issues: só o PO cria
 
-- Quando o PO pedir ajuda para escrever uma issue, siga o guia: https://github.com/Ticket-Pra-Ja/.github/blob/main/docs/governance/como-escrever-issue.md
-- Analise o código antes de escrever, proponha o caminho com opções e mostre o texto ao PO antes de criar.
-- Dependência de outro sistema (API, admin, banco) vira issue própria no repositório dele, marcada como "Blocked by". Em produção, o back-end sobe antes do front.
+- Só o Rafael (PO) cria issues. Desenvolvedores e os agentes deles **não criam issues**: executam as que estão em **Pronto**.
+- Se aparecer algo fora do escopo da issue (bug encontrado, melhoria, dependência de outro sistema), não crie issue nem resolva por conta própria. Comente na issue em andamento começando com `**Sugestão para o PO:**`, descreva o que encontrou e onde, e avise o desenvolvedor. O Rafael decide se vira issue.
+- Quando o próprio Rafael pedir para escrever uma issue, siga o guia: https://github.com/Ticket-Pra-Ja/.github/blob/main/docs/governance/como-escrever-issue.md. Analise o código antes, proponha o caminho com opções e mostre o texto a ele antes de criar. Dependência de outro sistema (API, admin, banco) vira issue própria no repositório dele, marcada como "Blocked by". Em produção, o back-end sobe antes do front.
 
 ## Quando depender do PO ou de algo externo
 
@@ -88,7 +92,9 @@ Fluxo completo: https://github.com/Ticket-Pra-Ja/.github/blob/main/docs/governan
 ## Proibido
 
 - Commit ou push em `development`, `main`, `master`.
-- Merge ou aprovação de PR, inclusive do próprio.
+- Aprovação de PR, inclusive do próprio.
+- Merge na `main`/`master`, ou na `development` sem as condições do passo 5.
+- Criar issue, salvo a pedido do próprio Rafael.
 - Apagar ou renomear branch que não seja a sua.
 - Alterar workflows em `.github/workflows` sem issue específica para isso.
 - Rodar comandos contra banco ou serviço de produção.
