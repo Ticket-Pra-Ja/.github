@@ -58,8 +58,8 @@ Fluxo completo: https://github.com/Ticket-Pra-Ja/.github/blob/main/docs/governan
 ## Revisão de código
 
 - Todo PR precisa passar no check **Revisão de código** antes do merge.
-- Revisão automática: o Codex revisa o PR. Leia os comentários dele e corrija o que for procedente com novos commits.
-- Contingência (Codex fora do ar ou sem cota): o Rafael revisa o PR e coloca o label `revisao-manual`. Se o check estiver vermelho esperando revisão, avise o desenvolvedor (ou o Rafael) e aguarde.
+- Revisão automática: o Claude revisa o último commit do PR (job **Revisão pelo Claude**) e publica um comentário com os apontamentos por prioridade (P0, P1, P2). Leia o comentário e corrija o que for procedente com novos commits; cada commit novo é revisado de novo. PR em rascunho só é revisado quando ficar pronto.
+- Contingência (revisão automática fora do ar): o Rafael revisa o PR e coloca o label `revisao-manual`. Se o check estiver vermelho esperando revisão, avise o desenvolvedor (ou o Rafael) e aguarde.
 - **Nunca coloque nem remova o label `revisao-manual`.** Só o Rafael usa esse label; a automação remove se outra pessoa colocar. Commits novos depois da revisão manual removem o label, e o PR precisa ser revisado de novo.
 
 ## Ao criar ou revisar issues
