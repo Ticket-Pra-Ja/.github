@@ -1,7 +1,10 @@
 # Check "Revisão de código". Reutilizável: os repositórios chamam com
 #   uses: Ticket-Pra-Ja/.github/.github/workflows/revisao-codigo.yml@main
-# Passa com revisão do Codex no último commit (review ou comentário-recibo) ou com o label
-# "revisao-manual" colocado pelo PO. Lógica em scripts/revisao-codigo.js.
+#   secrets: inherit
+# Revisão automática pelo Claude em todo PR (job "Revisão pelo Claude", autenticado com a assinatura
+# do PO no segredo CLAUDE_CODE_OAUTH_TOKEN). Também passa com revisão do Codex no último commit
+# (review ou comentário-recibo) ou com o label "revisao-manual" colocado pelo PO.
+# Lógica em scripts/revisao-codigo.js.
 # Quando o Codex comenta no PR (issue_comment), reexecuta o check do último commit
 # (scripts/revisao-reexecutar.js); para isso o chamador concede "actions: write".
 #
@@ -17,11 +20,82 @@ on:
         required: true
       TPJ_BOARD_APP_KEY:
         required: true
+      CLAUDE_CODE_OAUTH_TOKEN:
+        required: false
 
 jobs:
+  # Revisa o último commit do PR e publica o resultado num comentário único (scripts/revisao-claude-publicar.js).
+  # Não roda em rascunho nem em PR de bot (Dependabot): esses seguem pela revisão manual do PO.
+  claude:
+    name: Revisão pelo Claude
+    if: >-
+      github.event_name == 'pull_request' &&
+      contains(fromJSON('["opened","reopened","synchronize","ready_for_review"]'), github.event.action) &&
+      !github.event.pull_request.draft &&
+      github.event.pull_request.user.type != 'Bot' &&
+      !endsWith(github.actor, '[bot]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    concurrency:
+      group: revisao-claude-${{ github.repository }}-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - name: Baixar o código do PR
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Baixar instruções
+        uses: actions/checkout@v4
+        with:
+          repository: Ticket-Pra-Ja/.github
+          ref: main
+          path: .tpj
+          sparse-checkout: scripts
+          persist-credentials: false
+
+      - name: Preparar pasta do resultado
+        run: mkdir -p .revisao-claude && rm -f .revisao-claude/resultado.md
+
+      - name: Revisar com Claude
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ github.token }}
+          prompt: |
+            Revise o pull request #${{ github.event.pull_request.number }} do repositório ${{ github.repository }}.
+            Base: origin/${{ github.event.pull_request.base.ref }}. Último commit: ${{ github.event.pull_request.head.sha }}.
+            Siga as instruções do arquivo .tpj/scripts/revisao-claude.md e escreva o resultado em .revisao-claude/resultado.md.
+          claude_args: >-
+            --model sonnet
+            --max-turns 40
+            --allowedTools "Read,Grep,Glob,Write,Bash(git diff:*),Bash(git log:*),Bash(git show:*)"
+
+      - name: Gerar token do GitHub App
+        id: token
+        if: ${{ !cancelled() }}
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.TPJ_BOARD_APP_ID }}
+          private-key: ${{ secrets.TPJ_BOARD_APP_KEY }}
+          owner: Ticket-Pra-Ja
+
+      - name: Publicar revisão no PR
+        if: ${{ !cancelled() }}
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ steps.token.outputs.token }}
+          script: |
+            const run = require(`${process.env.GITHUB_WORKSPACE}/.tpj/scripts/revisao-claude-publicar.js`);
+            await run({ github, context, core, arquivo: `${process.env.GITHUB_WORKSPACE}/.revisao-claude/resultado.md` });
+
   revisao:
     name: Revisão de código
-    if: github.event_name != 'issue_comment'
+    needs: claude
+    # Roda depois da revisão pelo Claude (ou quando ela não se aplica ao evento).
+    if: ${{ !cancelled() && github.event_name != 'issue_comment' }}
     runs-on: ubuntu-latest
     steps:
       - name: Gerar token do GitHub App
