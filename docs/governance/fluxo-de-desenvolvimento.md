@@ -24,7 +24,7 @@ Um único board para todos os repositórios: **[Ticket Pra Já — Desenvolvimen
 | Em andamento | Alguém assumiu e está desenvolvendo, ou a revisão pediu ajustes | Automático ao atribuir a issue, ao pedir ajustes no PR ou ao fechar o PR sem merge |
 | Em revisão | PR aberto, aguardando a validação e o merge | Automático ao abrir o PR |
 | Homologação | Mesclado em `development`, em teste no ambiente de homologação | Automático no merge |
-| Aprovado | Testado em homologação e liberado para a próxima release | Rafael, depois de testar |
+| Aprovado | Testado em homologação e liberado para produção; com `deploy-dia` ou `deploy-padrao`, sobe na janela de deploy | Rafael, depois de testar |
 | Concluído | Em produção | Automático no merge da release |
 | Bloqueado | Parada aguardando o PO (`needs-owner`) ou um impedimento (`blocked`) | Automático pelo label |
 
@@ -98,9 +98,33 @@ fix: corrige arredondamento do NFC-e
    - Se o PR for fechado sem merge, o card volta para **Em andamento** (ou **Pronto**, sem responsável), com aviso na issue.
 8. Com a validação e a revisão verdes, o PR é mesclado em `development`: pelo próprio desenvolvedor, ou pelo agente quando o desenvolvedor disser que pode (o agente comenta no PR o que verificou antes de mesclar). Não há revisão de outra pessoa nesta etapa: a revisão é a do desenvolvedor sobre o código gerado (passo 4), a revisão automática ou manual (passo 7), e a homologação é o teste. O card vai para **Homologação**.
 9. Teste os critérios de aceite no ambiente de homologação. Com tudo certo, o Rafael move o card para **Aprovado**.
-10. Na release, um desenvolvedor (ou o Rafael) abre o PR `development → main/master` listando o que vai para produção. O check **Portão de release** fica vermelho enquanto houver card do repositório em **Homologação** (testado e ainda não aprovado); depois de aprovar, rode o check de novo. **Só o Rafael faz o merge.** Use merge comum, não squash, para a `development` e a branch padrão continuarem com o mesmo histórico. No merge, os cards em **Aprovado** vão para **Concluído** e as issues são fechadas. Os que ainda estavam em **Homologação** também vão (o código deles já estava na `development`), com um comentário avisando que foram publicados sem aprovação.
+10. A ida para produção é feita pela [janela de deploy](#janela-de-deploy): ao mover o card para **Aprovado**, o Rafael coloca o label `deploy-dia` ou `deploy-padrao`, e a automação abre e mescla o PR de release `development → main/master` na janela. Para subir fora da janela, abre-se o PR de release manualmente, e **só o Rafael faz o merge**; o check **Portão de release** fica vermelho enquanto houver card do repositório em **Homologação**. Use sempre merge comum, não squash, para a `development` e a branch padrão continuarem com o mesmo histórico. No merge, os cards em **Aprovado** vão para **Concluído** e as issues são fechadas. Se o Rafael mesclar manualmente com cards ainda em **Homologação**, eles também vão (o código deles já estava na `development`), com um comentário avisando que foram publicados sem aprovação.
 
 Depois de um `hotfix/`, leve a correção de volta para a `development`: crie uma issue, uma branch `chore/N-sincroniza-development` a partir da branch padrão e abra o PR para a `development`.
+
+## Janela de deploy
+
+Todo dia às 00:00 (horário de Brasília) o workflow **Janela de deploy** (`janela-deploy.yml`) confere o board e leva para produção o que o Rafael liberou. Ninguém precisa mesclar nada de madrugada: basta aprovar o card e escolher o label.
+
+| Label no card aprovado | Quando sobe |
+|---|---|
+| sem label | Não sobe |
+| `deploy-dia` | Na próxima janela (00:00 do dia seguinte) |
+| `deploy-padrao` | Na janela de segunda-feira (00:00) |
+
+O release leva **toda** a `development` do repositório. Por isso a janela decide por repositório:
+
+- sobe só se **todos** os cards abertos do repositório em **Homologação** ou **Aprovado** estiverem liberados para aquela janela;
+- se algum card estiver em **Homologação**, aprovado sem label ou com `deploy-padrao` fora da segunda, o repositório inteiro fica **segurado**, inclusive os cards liberados;
+- também segura se o último build da `development` não estiver verde ou se o PR de release tiver conflito.
+
+Quando libera, a automação abre o PR de release (ou reaproveita o que estiver aberto) e o mescla com merge comum, pelo app da organização. A publicação segue pelo deploy de cada repositório, e os cards vão para **Concluído**.
+
+Cada janela com algo a relatar (o que subiu, o que foi segurado e por quê) gera um comentário na issue **Janela de deploy: registro** do repositório `.github`, marcando o Rafael. Para destravar um repositório segurado, aprove o card que está travando ou tire o código dele da `development`.
+
+- **Só o Rafael coloca os labels de deploy.** Se outra pessoa colocar, a automação remove e avisa (`scripts/rotulo-deploy.js`).
+- **Simulação:** em Actions → Janela de deploy → Run workflow, com "Só simular" marcado, a janela relata o que subiria sem mesclar nada. Desmarcado, roda de verdade na hora.
+- **Fora da janela:** `API.TICKETPRAJA`, publicada manualmente no IIS. Nele o release continua manual, pelo Rafael. A lista de repositórios fica no `janela-deploy.yml`.
 
 ## Testes
 
@@ -119,7 +143,7 @@ Critério de aceite que não dá para automatizar (maquininha, impressora, e-mai
 | Destino | Quem aprova | Quem mescla | Como o GitHub garante |
 |---|---|---|---|
 | `development` (homologação) | Não exige aprovação | O desenvolvedor, ou o agente com o ok dele, com a validação verde | Ruleset `protege-development`: PR obrigatório e checks **Validar padrão do PR**, **Build e testes** e **Revisão de código**; sem push direto |
-| `main`/`master` (produção), inclusive `hotfix/` | Não exige aprovação | **Somente o Rafael** | Ruleset `producao-somente-po`: PR obrigatório e só o owner da organização atualiza a branch, e apenas por PR |
+| `main`/`master` (produção), inclusive `hotfix/` | Não exige aprovação | **Somente o Rafael**, ou a janela de deploy com os labels que ele coloca | Ruleset `producao-somente-po`: PR obrigatório e só o owner da organização (e o app da organização, na janela de deploy) atualiza a branch, e apenas por PR |
 
 Nos repositórios ainda não adotados continua valendo a regra antiga `protege-branch-principal` (PR + 1 aprovação na branch padrão).
 
@@ -136,6 +160,8 @@ O agente de IA nunca aprova PR nem mescla na `main`/`master`. Na `development`, 
 | Movimento dos cards | `sincroniza-board.yml` | Nunca |
 | Issue aberta por quem não é o PO (`board / Issue só pelo PO`): fechada com aviso e tirada do board | `sincroniza-board.yml` + `scripts/issue-somente-po.js` | Não se aplica |
 | Card ainda em Homologação no PR de release (`board / Portão de release`) | `sincroniza-board.yml` + `scripts/portao-release.js` | Avisa em vermelho; o Rafael pode mesclar mesmo assim |
+| Release na janela de deploy (00:00), conforme os labels `deploy-dia` e `deploy-padrao` | `janela-deploy.yml` + `scripts/janela-deploy.js` | Não se aplica; segura o repositório e registra o motivo |
+| Label de deploy colocado por quem não é o PO (`board / Label de deploy só pelo PO`): removido com aviso | `sincroniza-board.yml` + `scripts/rotulo-deploy.js` | Não se aplica |
 | 1 aprovação + sem push direto na branch padrão | Ruleset `protege-branch-principal` | Sim, nos repositórios ainda não adotados |
 | PR obrigatório e validação verde em `development` | Ruleset `protege-development` | Sim, nos repositórios em piloto |
 | Merge em produção só pelo Rafael | Ruleset `producao-somente-po` | Sim, nos repositórios em piloto |
@@ -160,10 +186,10 @@ A adoção é por repositório, sem afetar os demais:
 4. Nos segredos da organização (Settings → Secrets and variables → Actions), incluir o repositório na lista de **Selected repositories** do `CLAUDE_CODE_OAUTH_TOKEN`. Sem isso, a revisão pelo Claude falha e o check **Revisão de código** fica vermelho.
 5. Nas regras da organização (Settings → Rulesets), incluir o repositório em:
    - `protege-development` (branch `development`: PR sem aprovação mínima, checks **Validar padrão do PR**, **Build e testes** e **Revisão de código**, sem exclusão nem force push, sem exceções);
-   - `producao-somente-po` (branch padrão: PR sem aprovação mínima e **Restrict updates**, com exceção apenas para **Organization admin** no modo **For pull requests only**);
+   - `producao-somente-po` (branch padrão: PR sem aprovação mínima e **Restrict updates**, com exceção para **Organization admin** e para o app da organização, os dois no modo **For pull requests only**);
    - a lista de exclusão de `protege-branch-principal`.
 6. Levar os arquivos do passo 2 para a `development` com uma issue e um PR `chore/N-sincroniza-development`, que já serve de teste do fluxo.
-7. Atualizar a tabela abaixo.
+7. Atualizar a tabela abaixo e, se o deploy do repositório for automático, incluí-lo na lista `repos` do `janela-deploy.yml`.
 
 | Repositório | Situação |
 |---|---|
@@ -179,6 +205,7 @@ A adoção é por repositório, sem afetar os demais:
 ## Limites do que o GitHub garante
 
 - "Só o Rafael mescla em produção" é garantido pelo papel **owner da organização**, e não pelo usuário dele. Quando houver um segundo owner, ele também poderá mesclar.
+- Na janela de deploy, quem mescla em produção é o app da organização, que tem exceção no `producao-somente-po`. O que garante que só sobe o que o Rafael liberou é o script da janela, que confere status e labels no board, e a remoção automática de label de deploy colocado por outra pessoa. Alterar a janela exige mudar o repositório `.github`, onde só o Rafael mescla.
 - Em `development` não há segunda pessoa olhando o código antes do merge. O que segura a qualidade é a revisão do próprio desenvolvedor, a revisão automática pelo Claude, a validação automática e o teste em homologação. Na produção, o merge do Rafael é o portão.
 - A revisão automática usa a assinatura do Claude do Rafael (token de 1 ano no segredo `CLAUDE_CODE_OAUTH_TOKEN`, gerado com `claude setup-token`). Se o token vencer ou o limite do plano acabar, o check fica vermelho e vale a revisão manual até o token ser renovado.
 - O GitHub não impede quem tem acesso de escrita de abrir issue. Por isso a automação **Issue só pelo PO** fecha, com um comentário explicando a regra, a issue aberta por quem não é o PO, e a tira do board. Por alguns segundos a issue existe.
@@ -188,5 +215,5 @@ A adoção é por repositório, sem afetar os demais:
 
 ## Pré-requisitos
 
-- O GitHub App da organização `ticketpraja-board`, com os secrets `TPJ_BOARD_APP_ID` e `TPJ_BOARD_APP_KEY` (todos os repositórios). Ele move os cards e publica a revisão do Claude nos PRs, por isso precisa de escrita em issues, pull requests e projetos da organização. Sem ele, a validação de PR funciona, mas o board não é atualizado e o check de revisão não passa.
+- O GitHub App da organização `ticketpraja-board`, com os secrets `TPJ_BOARD_APP_ID` e `TPJ_BOARD_APP_KEY` (todos os repositórios). Ele move os cards e publica a revisão do Claude nos PRs, por isso precisa de escrita em issues, pull requests e projetos da organização. Também abre e mescla os PRs de release da janela de deploy, por isso precisa de escrita em conteúdo (Contents) e de exceção no ruleset `producao-somente-po`. Sem ele, a validação de PR funciona, mas o board não é atualizado e o check de revisão não passa.
 - O secret `CLAUDE_CODE_OAUTH_TOKEN` (repositórios selecionados), para a revisão automática pelo Claude.
