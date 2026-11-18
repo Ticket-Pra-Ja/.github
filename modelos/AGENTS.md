@@ -58,6 +58,7 @@ Fluxo completo: https://github.com/Ticket-Pra-Ja/.github/blob/main/docs/governan
 - Ajustes pedidos pelo desenvolvedor ou pela validação: novos commits na mesma branch, sem force-push.
 - Merge em `development` → card vai para **Homologação**.
 - PR de release `development` → branch padrão → card vai para **Concluído** e a issue é fechada.
+- A ida para produção é pela janela de deploy: o Rafael aprova o card e coloca o label `deploy-dia` ou `deploy-padrao`, e a automação sobe na janela das 00:00. **Nunca coloque nem remova esses labels**; a automação remove se outra pessoa colocar.
 
 ## Revisão de código
 
@@ -98,4 +99,4 @@ Fluxo completo: https://github.com/Ticket-Pra-Ja/.github/blob/main/docs/governan
 - Apagar ou renomear branch que não seja a sua.
 - Alterar workflows em `.github/workflows` sem issue específica para isso.
 - Rodar comandos contra banco ou serviço de produção.
-- Colocar ou remover o label `revisao-manual`.
+- Colocar ou remover os labels `revisao-manual`, `deploy-dia` e `deploy-padrao`.
