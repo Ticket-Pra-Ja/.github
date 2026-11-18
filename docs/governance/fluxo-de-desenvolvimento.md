@@ -134,6 +134,7 @@ O agente de IA nunca aprova PR nem mescla na `main`/`master`. Na `development`, 
 | Revisão automática do PR pelo Claude (`revisao / Revisão pelo Claude`), a cada commit | `revisao-codigo.yml` + `scripts/revisao-claude.md` + `scripts/revisao-claude-publicar.js` | Não por si; alimenta o check abaixo |
 | Revisão do PR (`revisao / Revisão de código`): Claude no último commit, ou label `revisao-manual` colocado pelo Rafael | `revisao-codigo.yml` + `scripts/revisao-codigo.js` | Sim, nos repositórios em piloto |
 | Movimento dos cards | `sincroniza-board.yml` | Nunca |
+| Issue aberta por quem não é o PO (`board / Issue só pelo PO`): fechada com aviso e tirada do board | `sincroniza-board.yml` + `scripts/issue-somente-po.js` | Não se aplica |
 | Card ainda em Homologação no PR de release (`board / Portão de release`) | `sincroniza-board.yml` + `scripts/portao-release.js` | Avisa em vermelho; o Rafael pode mesclar mesmo assim |
 | 1 aprovação + sem push direto na branch padrão | Ruleset `protege-branch-principal` | Sim, nos repositórios ainda não adotados |
 | PR obrigatório e validação verde em `development` | Ruleset `protege-development` | Sim, nos repositórios em piloto |
@@ -180,7 +181,7 @@ A adoção é por repositório, sem afetar os demais:
 - "Só o Rafael mescla em produção" é garantido pelo papel **owner da organização**, e não pelo usuário dele. Quando houver um segundo owner, ele também poderá mesclar.
 - Em `development` não há segunda pessoa olhando o código antes do merge. O que segura a qualidade é a revisão do próprio desenvolvedor, a revisão automática pelo Claude, a validação automática e o teste em homologação. Na produção, o merge do Rafael é o portão.
 - A revisão automática usa a assinatura do Claude do Rafael (token de 1 ano no segredo `CLAUDE_CODE_OAUTH_TOKEN`, gerado com `claude setup-token`). Se o token vencer ou o limite do plano acabar, o check fica vermelho e vale a revisão manual até o token ser renovado.
-- "Só o PO cria issues" é regra do `AGENTS.md` e do fluxo. O GitHub não impede quem tem acesso de escrita de abrir issue.
+- O GitHub não impede quem tem acesso de escrita de abrir issue. Por isso a automação **Issue só pelo PO** fecha, com um comentário explicando a regra, a issue aberta por quem não é o PO, e a tira do board. Por alguns segundos a issue existe.
 - Os agentes usam a credencial do desenvolvedor, e o GitHub não distingue o agente do desenvolvedor. No Claude Code, o `.claude/settings.json` bloqueia aprovação de PR e push em branch protegida; no Cursor, a proibição vem só da instrução no `AGENTS.md`. Os bloqueios do Claude Code são uma proteção a mais, não uma garantia: um comando escrito de outra forma pode escapar deles. Em produção, o que impede um merge sem autorização é a regra `producao-somente-po`.
 - Agentes que usam a conta do Rafael conseguem mesclar em produção como ele, porque ele é owner. O que impede é só a instrução do `AGENTS.md`. Por isso assinam tudo o que escrevem (regra 10 do `AGENTS.md`).
 - As regras ficam na organização, e só owners da organização podem alterá-las. Os desenvolvedores têm acesso de escrita, não de administrador.

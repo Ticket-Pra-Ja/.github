@@ -6,7 +6,8 @@ on:
   pull_request:
     types: [opened, reopened, edited, synchronize, ready_for_review, closed]
   issues:
-    types: [assigned, labeled, unlabeled]
+    # opened: só o PO cria issues; a issue aberta por outra pessoa é fechada com aviso.
+    types: [opened, assigned, labeled, unlabeled]
 
 permissions:
   contents: read
