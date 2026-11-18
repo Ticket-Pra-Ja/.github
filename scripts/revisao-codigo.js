@@ -1,7 +1,9 @@
 // Check "Revisão de código": o PR só passa se tiver sido revisado.
 // Chamado por .github/workflows/revisao-codigo.yml.
 //
-//   Revisão automática: o Codex revisou o último commit do PR. Vale de dois jeitos:
+//   Revisão automática pelo Claude: comentário do app do board (job "Revisão pelo Claude") com o
+//     marcador <!-- revisao-claude:v1 {"commit_sha":"<sha>"} --> citando o último commit.
+//   Revisão automática pelo Codex: o Codex revisou o último commit. Vale de dois jeitos:
 //     - uma revisão (review) do Codex no último commit, quando ele tem apontamentos;
 //     - o comentário-recibo do Codex ("Reviewed commit: <sha>"), quando não encontra nada.
 //   Revisão manual (contingência): o PO revisa o PR e coloca o label "revisao-manual".
@@ -11,6 +13,7 @@ module.exports = async ({ github, context, core }) => {
   const PO = 'rafaelmoraishmb';
   const LABEL = 'revisao-manual';
   const REVISORES = ['chatgpt-codex-connector[bot]'];
+  const APP_CLAUDE = 'ticketpraja-board[bot]';
   const { owner, repo } = context.repo;
   const numero = context.payload.pull_request?.number;
   if (!numero) { core.info('Evento sem PR; nada a verificar.'); return; }
@@ -47,7 +50,19 @@ module.exports = async ({ github, context, core }) => {
     return;
   }
 
-  // 3a. Revisão automática com apontamentos: review do Codex no último commit.
+  const comentarios = await github.paginate(github.rest.issues.listComments, { owner, repo, issue_number: numero, per_page: 100 });
+
+  // 3. Revisão automática pelo Claude no último commit.
+  const claude = comentarios
+    .filter(c => c.user?.login === APP_CLAUDE)
+    .some(c => claudeRevisou(c.body || '', head));
+  if (claude) {
+    core.info('Claude revisou o último commit.');
+    await core.summary.addHeading('Revisão de código', 2).addRaw('Revisão automática pelo Claude no último commit.').write();
+    return;
+  }
+
+  // 4a. Revisão automática com apontamentos: review do Codex no último commit.
   const reviews = await github.paginate(github.rest.pulls.listReviews, { owner, repo, pull_number: numero, per_page: 100 });
   const doRevisor = reviews.filter(r => REVISORES.includes(r.user?.login) && r.commit_id === head);
   if (doRevisor.length) {
@@ -56,8 +71,7 @@ module.exports = async ({ github, context, core }) => {
     return;
   }
 
-  // 3b. Revisão automática sem apontamentos: recibo do Codex citando o último commit.
-  const comentarios = await github.paginate(github.rest.issues.listComments, { owner, repo, issue_number: numero, per_page: 100 });
+  // 4b. Revisão automática sem apontamentos: recibo do Codex citando o último commit.
   const recibo = comentarios
     .filter(c => REVISORES.includes(c.user?.login))
     .some(c => commitRevisado(c.body || '', head));
@@ -69,9 +83,17 @@ module.exports = async ({ github, context, core }) => {
 
   core.setFailed(
     `Aguardando revisão do último commit (${head.slice(0, 7)}). ` +
-    `Revisão automática: o Codex revisa o PR. Se ela estiver fora do ar, o PO (@${PO}) revisa e coloca o label "${LABEL}".`
+    'Revisão automática: o Claude revisa o PR a cada commit (veja o job "Revisão pelo Claude"); PR em rascunho só é revisado quando ficar pronto. ' +
+    `Se a revisão automática estiver fora do ar, o PO (@${PO}) revisa e coloca o label "${LABEL}".`
   );
 };
+
+// Comentário do job "Revisão pelo Claude": <!-- revisao-claude:v1 {"commit_sha":"<sha>"} -->
+function claudeRevisou(body, head) {
+  const m = body.match(/<!-- revisao-claude:v1\s*(\{[\s\S]*?\})\s*-->/);
+  if (!m) return false;
+  try { return JSON.parse(m[1]).commit_sha === head; } catch { return false; }
+}
 
 // O Codex publica um comentário-recibo: "**Reviewed commit:** `abc1234567`" (revisão concluída),
 // ou um estado em JSON (<!-- codex-review-state:v1 {...} -->) com commit_sha e status.
