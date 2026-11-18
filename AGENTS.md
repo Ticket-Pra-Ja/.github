@@ -1,6 +1,6 @@
 # Instruções para agentes de IA — Ticket pra Já
 
-Estas regras valem para qualquer agente (Claude, ChatGPT, Cursor, Copilot ou outro) que leia ou altere repositórios da organização.
+Estas regras valem para qualquer agente (Claude, Cursor, Copilot ou outro) que leia ou altere repositórios da organização.
 
 Antes de agir, consulte `docs/governance/` e as decisões vigentes em `docs/decisions/` deste repositório.
 
@@ -17,7 +17,6 @@ Antes de agir, consulte `docs/governance/` e as decisões vigentes em `docs/deci
 9. Em caso de conflito entre regras, **não improvise**: pergunte ao responsável e registre a decisão em um ADR.
 10. **Assine o que escrever.** Agentes usam a conta de uma pessoa, e o GitHub registra tudo em nome dela. Todo comentário em issue ou PR termina com a assinatura do agente, para o histórico mostrar quem fez o quê:
     - `— Claude`
-    - `— ChatGPT`
     - `— Cursor (agente de <usuário do desenvolvedor>)`
 
     Em commits, use o trailer `Co-Authored-By` do agente quando a ferramenta permitir. Comentários sem assinatura são tratados como escritos pela própria pessoa dona da conta.
