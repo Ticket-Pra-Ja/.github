@@ -1,0 +1,56 @@
+# Janela de deploy: todo dia às 00:00 (Brasília) leva para produção os repositórios liberados pelo PO
+# com os labels deploy-dia / deploy-padrao. Regras e registro em scripts/janela-deploy.js.
+# Disparo manual: "Run workflow", com a opção de simular (só relata, não mescla).
+name: Janela de deploy
+
+on:
+  schedule:
+    - cron: '0 3 * * *'   # 03:00 UTC = 00:00 em Brasília
+  workflow_dispatch:
+    inputs:
+      simular:
+        description: 'Só simular (relata o que subiria, sem mesclar)'
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: janela-deploy
+  cancel-in-progress: false
+
+jobs:
+  janela:
+    name: Janela de deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Gerar token do GitHub App
+        id: token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.TPJ_BOARD_APP_ID }}
+          private-key: ${{ secrets.TPJ_BOARD_APP_KEY }}
+          owner: Ticket-Pra-Ja
+
+      - name: Baixar script
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: scripts
+          persist-credentials: false
+
+      - name: Rodar janela
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ steps.token.outputs.token }}
+          script: |
+            const run = require(`${process.env.GITHUB_WORKSPACE}/scripts/janela-deploy.js`);
+            await run({ github, context, core, cfg: {
+              org: 'Ticket-Pra-Ja',
+              projeto: 4,
+              po: 'rafaelmoraishmb',
+              // API.TICKETPRAJA fica fora: publicação manual no IIS.
+              repos: ['portal.ticketpraja', 'admin.ticketpraja', 'api.v2.ticketpraja', 'marketplace.ticketpraja', 'e2e.ticketpraja'],
+              simular: context.eventName === 'workflow_dispatch' && ${{ inputs.simular == true }},
+            }});
