@@ -8,7 +8,10 @@
 //     TODOS os cards abertos dele em "Homologação" ou "Aprovado" estiverem liberados para esta janela.
 //     Card em Homologação, aprovado sem label ou com deploy-padrao fora da segunda segura o repositório.
 //   - Só sobe se o último build da development estiver verde e o PR de release não tiver conflito.
+//   - Só contam cards com código na development (scripts/card-com-codigo.js); os administrativos ficam fora.
 // Cada janela com algo a relatar vira um comentário na issue de registro, marcando o PO.
+const cardComCodigo = require('./card-com-codigo.js');
+
 module.exports = async ({ github, context, core, cfg }) => {
   const { org, projeto, repos, po, simular } = cfg;
   const agora = new Date(Date.now() - 3 * 3600 * 1000); // horário de Brasília (UTC-3)
@@ -59,6 +62,8 @@ module.exports = async ({ github, context, core, cfg }) => {
     const lista = cards[repo] || [];
     const liberados = [], travas = [];
     for (const c of lista) {
+      // Card sem PR mesclado na development (documentos, avisos, tarefas administrativas) fica fora da janela (#47).
+      if (!(await cardComCodigo(github, org, repo, c.numero))) continue;
       const ref = `${repo}#${c.numero} ${c.titulo}`;
       if (c.status !== 'Aprovado') travas.push(`${ref}: ainda em Homologação`);
       else if (c.labels.includes('deploy-dia')) liberados.push(ref);
