@@ -30,6 +30,8 @@ Um único board para todos os repositórios: **[Ticket Pra Já — Desenvolvimen
 
 Fora **Pronto** e **Aprovado**, que são decisões do Rafael, ninguém precisa arrastar card: o status acompanha o que acontece no GitHub.
 
+**Cards sem código** (alteração de documentos, avisos, cobranças, tarefas administrativas) não entram na release: não travam o **Portão de release** e não são fechados pelo merge da release. Card de software é o que tem PR mesclado na `development` do repositório com `Closes #N` (`scripts/card-com-codigo.js`). O card administrativo é fechado à mão quando a tarefa termina.
+
 ## Pendências com o PO
 
 Quando uma tarefa depende de algo que só o Rafael pode dar — decisão, autorização, acesso, gasto ou segredo — o agente ou o dev:

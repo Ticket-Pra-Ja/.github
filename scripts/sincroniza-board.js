@@ -12,6 +12,8 @@
 //   card movido para Aprovado              -> manual, pelo PO, depois de testar no sandbox
 //   PR de release development -> padrão    -> Concluído + fecha as issues em Aprovado/Homologação do repositório
 //   PR hotfix/ mesclado na branch padrão   -> Concluído
+const cardComCodigo = require('./card-com-codigo.js');
+
 module.exports = async ({ github, context, core }) => {
   const ORG = 'Ticket-Pra-Ja';
   const NUM = 4;
@@ -168,8 +170,9 @@ module.exports = async ({ github, context, core }) => {
       }
 
       if (base === padrao && head === 'development') {
-        // Release: tudo que estava em Aprovado ou Homologação neste repositório foi para produção.
+        // Release: tudo que estava em Aprovado ou Homologação neste repositório, com código na development, foi para produção.
         // Homologação sem aprovação também vai (o código já estava na development), com aviso na issue.
+        // Cards sem PR mesclado na development (documentos, avisos, tarefas administrativas) ficam onde estão (#47).
         let cursor = null;
         do {
           const r = await github.graphql(`
@@ -196,6 +199,10 @@ module.exports = async ({ github, context, core }) => {
             const c = it.content;
             if (!c || !c.repository || c.repository.nameWithOwner !== repoCompleto) continue;
             if (!it.status || !['Aprovado', 'Homologação'].includes(it.status.name)) continue;
+            if (!(await cardComCodigo(github, owner, repo, c.number))) {
+              core.info(`#${c.number} sem código na development; fica fora da release.`);
+              continue;
+            }
             const semAprovacao = it.status.name === 'Homologação';
             await definirStatus(it.id, 'Concluído');
             if (c.state === 'OPEN') {
