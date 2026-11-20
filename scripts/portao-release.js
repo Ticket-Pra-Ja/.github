@@ -1,7 +1,10 @@
 // Portão de release: no PR development -> branch padrão, lista o que vai para produção
-// e falha se algum card deste repositório ainda estiver em "Homologação" (não aprovado).
+// e falha se algum card deste repositório com código na development ainda estiver em "Homologação" (não aprovado).
+// Cards sem PR mesclado na development (documentos, avisos, cobranças, tarefas administrativas) ficam fora (#47).
 // Chamado pelo job "Portão de release" de .github/workflows/sincroniza-board.yml.
 // Depois de mover os cards para "Aprovado", rode o job de novo (Re-run) ou edite o PR.
+const cardComCodigo = require('./card-com-codigo.js');
+
 module.exports = async ({ github, context, core }) => {
   const ORG = 'Ticket-Pra-Ja';
   const NUM = 4;
@@ -45,13 +48,25 @@ module.exports = async ({ github, context, core }) => {
     cursor = pagina.pageInfo.hasNextPage ? pagina.pageInfo.endCursor : null;
   } while (cursor);
 
-  const aprovados = porStatus['Aprovado'] || [];
-  const pendentes = porStatus['Homologação'] || [];
+  // Só cards com código na development entram na release e no portão; os administrativos ficam fora.
+  const [owner, repo] = repoCompleto.split('/');
+  const semCodigo = [];
+  const filtrar = async (lista) => {
+    const comCodigo = [];
+    for (const c of lista || []) {
+      if (await cardComCodigo(github, owner, repo, c.number)) comCodigo.push(c);
+      else semCodigo.push(c);
+    }
+    return comCodigo;
+  };
+  const aprovados = await filtrar(porStatus['Aprovado']);
+  const pendentes = await filtrar(porStatus['Homologação']);
   const linha = (c) => `#${c.number} ${c.title}`;
 
   core.summary.addHeading('Portão de release', 2);
   core.summary.addHeading(`Aprovados (${aprovados.length})`, 3).addList(aprovados.length ? aprovados.map(linha) : ['nenhum']);
   core.summary.addHeading(`Ainda em Homologação (${pendentes.length})`, 3).addList(pendentes.length ? pendentes.map(linha) : ['nenhum']);
+  core.summary.addHeading(`Fora da release, sem código na development (${semCodigo.length})`, 3).addList(semCodigo.length ? semCodigo.map(linha) : ['nenhum']);
   await core.summary.write();
 
   if (pendentes.length) {
